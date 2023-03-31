@@ -229,7 +229,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="consume.py" />
-    <None Include="InappropriateWordSearcher_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="profane.json" />
     <None Include="Properties\Settings.settings">
