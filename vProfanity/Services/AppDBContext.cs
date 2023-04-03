@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
+using Tensorflow.Util;
+
 namespace vProfanity.Services
 {
     public class AppDBContext
@@ -15,6 +17,23 @@ namespace vProfanity.Services
         
         }
 
+        public bool HasRecord(string videoHash)
+        {
+            using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = @"SELECT ID FROM filehistory WHERE FILE_HASH=$videohash";
+                command.Parameters.AddWithValue("$videohash", videoHash);
+                object result = command.ExecuteScalar();
+                if (result != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         public void SaveTranscript(string videoHash, string transcript)
         {
             
@@ -22,14 +41,69 @@ namespace vProfanity.Services
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText =
+                if (!HasRecord(videoHash))
+                {
+                    command.CommandText =
                     @"
-                        INSERT INTO TranscriptHistory(videohash, transcript)
+                        INSERT INTO filehistory(FILE_HASH, TRANSCRIPT)
                         VALUES ($videohash, $transcript)
                     ";
-                command.Parameters.AddWithValue("$videohash", videoHash);
-                command.Parameters.AddWithValue("$transcript", transcript);
-                command.ExecuteNonQuery();
+                    command.Parameters.AddWithValue("$videohash", videoHash);
+                    command.Parameters.AddWithValue("$transcript", transcript);
+                    command.ExecuteNonQuery();
+                }
+                else
+                {
+                    command.CommandText =
+                    @"
+                        UPDATE filehistory SET TRANSCRIPT=$transcript WHERE FILE_HASH=$videohash
+                    ";
+                    command.Parameters.AddWithValue("$videohash", videoHash);
+                    command.Parameters.AddWithValue("$transcript", transcript);
+                    command.ExecuteNonQuery();
+                }
+
+            }
+        }
+
+
+
+        public void SaveDetectedSexualTimes(string videoHash, string detectedSexualTimesJson)
+        {
+            using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                if (!HasRecord(videoHash))
+                {
+                    command.CommandText =
+                    @"
+                        INSERT INTO filehistory(FILE_HASH, DETECTED_SEXUAL_BY_FRAMES)
+                        VALUES ($videohash, $detected)
+                    ";
+                    command.Parameters.AddWithValue("$videohash", videoHash);
+                    command.Parameters.AddWithValue("$detected", detectedSexualTimesJson);
+                    command.ExecuteNonQuery();
+                }
+                else
+                {
+                    command.CommandText =
+                    @"
+                        UPDATE filehistory SET DETECTED_SEXUAL_BY_FRAMES=$detected WHERE FILE_HASH=$videohash
+                    ";
+
+                    command.Parameters.AddWithValue("$videohash", videoHash);
+                    command.Parameters.AddWithValue("$detected", detectedSexualTimesJson);
+                    command.ExecuteNonQuery();
+                }
+
+            }
+
+            using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                
             }
         }
 
@@ -40,7 +114,7 @@ namespace vProfanity.Services
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT transcript FROM TranscriptHistory WHERE videohash=$videohash";
+                command.CommandText = @"SELECT TRANSCRIPT FROM filehistory WHERE FILE_HASH=$videohash";
                 command.Parameters.AddWithValue("$videohash", videoHash);
                 using (var reader = command.ExecuteReader())
                 {
@@ -54,21 +128,27 @@ namespace vProfanity.Services
             return transcript;
         }
 
-        public void UpdateTranscript(string videoHash, string newTranscript)
+        public string GetDetectedSexualTimes(string videoHash)
         {
             using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText =
-                    @"
-                        UPDATE TranscriptHistory SET transcript=$transcript WHERE videohash=$videohash
-                    ";
+                command.CommandText = @"SELECT DETECTED_SEXUAL_BY_FRAMES FROM filehistory WHERE FILE_HASH=$videohash";
                 command.Parameters.AddWithValue("$videohash", videoHash);
-                command.Parameters.AddWithValue("$transcript", newTranscript);
-                command.ExecuteNonQuery();
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return reader.GetString(0);
+                    }
+                    return null;
+
+                }
             }
         }
+
+        
 
         public bool IsProfane(string word)
         {
@@ -76,7 +156,7 @@ namespace vProfanity.Services
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT * FROM ProfaneWords WHERE Word=$word";
+                command.CommandText = @"SELECT * FROM profanewords WHERE PROFANE_WORD=$word";
                 command.Parameters.AddWithValue("$word", word);
                 using (var reader = command.ExecuteReader())
                 {
@@ -100,7 +180,7 @@ namespace vProfanity.Services
                 var command = connection.CreateCommand();
                 command.CommandText =
                     @"
-                        INSERT INTO ProfaneWords(Word)
+                        INSERT INTO profanewords(PROFANE_WORD)
                         VALUES ($word)
                     ";
                 command.Parameters.AddWithValue("$word", word);
@@ -121,7 +201,7 @@ namespace vProfanity.Services
                     var command = connection.CreateCommand();
                     command.CommandText =
                         @"
-                        INSERT OR IGNORE INTO ProfaneWords(Word)
+                        INSERT OR IGNORE INTO profanewords(PROFANE_WORD)
                         VALUES ($word)
                     ";
                     command.Parameters.AddWithValue("$word", words);
@@ -138,7 +218,7 @@ namespace vProfanity.Services
             {
                 connection.Open();
                 var transcript_command = connection.CreateCommand();
-                transcript_command.CommandText = DbConstants.TRANSCRIPT_HISTORY_TABLE_QUERY;
+                transcript_command.CommandText = DbConstants.FILE_HISTORY_TABLE_QUERY;
                 transcript_command.ExecuteNonQuery();
 
                 var profane_command = connection.CreateCommand();

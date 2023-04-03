@@ -94,6 +94,9 @@
     <Reference Include="Microsoft.ML.KMeansClustering, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.ML.2.0.1\lib\netstandard2.0\Microsoft.ML.KMeansClustering.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.ML.OnnxConverter, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ML.OnnxConverter.0.20.1\lib\netstandard2.0\Microsoft.ML.OnnxConverter.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.ML.PCA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.ML.2.0.1\lib\netstandard2.0\Microsoft.ML.PCA.dll</HintPath>
     </Reference>
@@ -204,9 +207,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\FileHashGenerator.cs" />
     <Compile Include="Services\PerspectiveAPI.cs" />
-    <Compile Include="Services\TranscriptGenerator.cs" />
     <Compile Include="Services\AppDBContext.cs" />
-    <Compile Include="Services\TranscriptSerializer.cs" />
     <Compile Include="Services\VideoExtractor.cs" />
     <Compile Include="vProfanityModel.consumption.cs" />
     <Compile Include="vProfanityModel.training.cs" />
@@ -229,6 +230,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="consume.py" />
+    <None Include="MLModel1.mbconfig" />
     <None Include="packages.config" />
     <None Include="profane.json" />
     <None Include="Properties\Settings.settings">
@@ -281,16 +283,13 @@
     <Content Include="utilspy\calc.py" />
     <Content Include="utilspy\censor_second.py" />
     <Content Include="utilspy\constants.py" />
-    <Content Include="utilspy\cv_export_image_test.py" />
     <Content Include="utilspy\exceptions.py" />
     <Content Include="utilspy\ffmpeg_utils.py" />
     <Content Include="utilspy\image_compare.py" />
-    <Content Include="utilspy\image_exporter copy.py" />
     <Content Include="utilspy\image_exporter.py" />
     <Content Include="utilspy\requirements.txt" />
     <Content Include="utilspy\speechtotext.py" />
     <Content Include="utilspy\speech_recognizer.py" />
-    <Content Include="utilspy\test.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

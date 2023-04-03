@@ -16,7 +16,7 @@ namespace vProfanity
 {
     public partial class ExtractForm : Form
     {
-        public WordClass SelectedItem { get; set; }
+        public WordOption SelectedItem { get; set; }
         public string VideoURL { get; set; }
         public ExtractForm()
         {

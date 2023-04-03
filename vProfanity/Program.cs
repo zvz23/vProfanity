@@ -19,8 +19,9 @@ namespace vProfanity
         {
             string pythonDll = @"C:\Program Files\Python311\python311.dll";
             Runtime.PythonDLL = pythonDll;
-            Environment.SetEnvironmentVariable("PYTHONPATH", @"D:\School\Thesis\System\utils");
+            Environment.SetEnvironmentVariable("PYTHONPATH", @"C:\Users\Ziegfred\source\repos\vProfanity\vProfanity\utilspy");
             PythonEngine.Initialize();
+            var m_threadState = PythonEngine.BeginAllowThreads();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -35,7 +36,8 @@ namespace vProfanity
             AppDBContext.Initialize_Database();
 
             Application.Run(new Main());
-            //Load sample data
+
+          
         }
     }
 }
