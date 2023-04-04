@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using Tensorflow.Util;
+using System.Windows.Forms;
 
 namespace vProfanity.Services
 {
@@ -136,15 +137,13 @@ namespace vProfanity.Services
                 var command = connection.CreateCommand();
                 command.CommandText = @"SELECT DETECTED_SEXUAL_BY_FRAMES FROM filehistory WHERE FILE_HASH=$videohash";
                 command.Parameters.AddWithValue("$videohash", videoHash);
-                using (var reader = command.ExecuteReader())
+                object result = command.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
                 {
-                    if (reader.Read())
-                    {
-                        return reader.GetString(0);
-                    }
-                    return null;
-
+                    return Convert.ToString(result);
+                    
                 }
+                return null;
             }
         }
 
@@ -214,18 +213,13 @@ namespace vProfanity.Services
 
         public static void Initialize_Database()
         {
-            using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
+            string defaultDatabasePath = Path.Combine(Environment.CurrentDirectory, "defaultvProfanity.db");
+            
+            if (!File.Exists(DbConstants.ABS_DB_PATH))
             {
-                connection.Open();
-                var transcript_command = connection.CreateCommand();
-                transcript_command.CommandText = DbConstants.FILE_HISTORY_TABLE_QUERY;
-                transcript_command.ExecuteNonQuery();
-
-                var profane_command = connection.CreateCommand();
-                profane_command.CommandText = DbConstants.PROFANE_WORDS_TABLE_QUERY;
-                profane_command.ExecuteNonQuery();
-
+                File.Copy(defaultDatabasePath, DbConstants.ABS_DB_PATH);
             }
+
         }
 
 

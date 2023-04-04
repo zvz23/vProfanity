@@ -19,7 +19,7 @@ namespace vProfanity
         {
             string pythonDll = @"C:\Program Files\Python311\python311.dll";
             Runtime.PythonDLL = pythonDll;
-            Environment.SetEnvironmentVariable("PYTHONPATH", @"C:\Users\Ziegfred\source\repos\vProfanity\vProfanity\utilspy");
+            Environment.SetEnvironmentVariable("PYTHONPATH", AppConstants.PYTHON_UTILS_FOLDER);
             PythonEngine.Initialize();
             var m_threadState = PythonEngine.BeginAllowThreads();
 

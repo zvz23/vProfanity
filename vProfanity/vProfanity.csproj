@@ -76,6 +76,9 @@
     <Reference Include="Google.Protobuf, Version=3.19.6.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Protobuf.3.19.6\lib\net45\Google.Protobuf.dll</HintPath>
     </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.11.46.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.11.46\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.ML, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.ML.2.0.1\lib\netstandard2.0\Microsoft.ML.dll</HintPath>
     </Reference>
@@ -205,6 +208,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\DependencyDownloader.cs" />
     <Compile Include="Services\FileHashGenerator.cs" />
     <Compile Include="Services\PerspectiveAPI.cs" />
     <Compile Include="Services\AppDBContext.cs" />
@@ -242,6 +246,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="defaultvProfanity.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="vProfanityModel.mbconfig" />
     <None Include="vProfanityModel.zip" />
   </ItemGroup>
@@ -280,16 +287,36 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="utilspy\calc.py" />
-    <Content Include="utilspy\censor_second.py" />
-    <Content Include="utilspy\constants.py" />
-    <Content Include="utilspy\exceptions.py" />
-    <Content Include="utilspy\ffmpeg_utils.py" />
-    <Content Include="utilspy\image_compare.py" />
-    <Content Include="utilspy\image_exporter.py" />
-    <Content Include="utilspy\requirements.txt" />
-    <Content Include="utilspy\speechtotext.py" />
-    <Content Include="utilspy\speech_recognizer.py" />
+    <None Include="utilspy\calc.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\censor_second.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\constants.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\exceptions.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\ffmpeg_utils.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\image_compare.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\image_exporter.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\requirements.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\speechtotext.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="utilspy\speech_recognizer.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

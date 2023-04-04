@@ -30,7 +30,10 @@ def speech_to_text(input_file: str):
                     'end': region[1] / 1000.0,
                     'text': result[0]['transcript']
                 })
-    return json.dumps(transcript)
+    if len(transcript) > 0:
+        return json.dumps(transcript)
+    else:
+        return None
     # with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
     #         json.dump(transcript, f)
     #         return f.name
