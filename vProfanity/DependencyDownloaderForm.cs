@@ -68,8 +68,22 @@ namespace vProfanity
                         }
                     }
                 }
+            }
+        }
 
-
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            
+        }
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            // Update the progress bar with the value of e.ProgressPercentage
+            progressBar1.Value = e.ProgressPercentage;
+            // Check if a message was passed with the progress update
+            if (e.UserState != null)
+            {
+                // Display the error message on the UI thread
+                MessageBox.Show(e.UserState.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
