@@ -46,7 +46,7 @@ def export_video_images_by_keyframes(video_file: str, folder_name: str):
                     'FilePath': f.name,
                     'Milliseconds': milliseconds,
                     'Seconds': milliseconds / 1000.0,
-                    'NextSeconds': next_second(milliseconds)[1]
+                    'NextSeconds': next_second(milliseconds)[1] + 1000.0
                 })
     return json.dumps(keyframes)
 

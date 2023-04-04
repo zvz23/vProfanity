@@ -14,6 +14,7 @@ using static vProfanity.VProfanityModel;
 using Microsoft.ML;
 using Python.Runtime;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace vProfanity
 {
@@ -53,6 +54,7 @@ namespace vProfanity
         
         private void _setDefaultControlState()
         {
+
             audioListBox.BeginUpdate();
             audioListBox.Items.Clear();
             audioListBox.EndUpdate();
@@ -60,6 +62,10 @@ namespace vProfanity
             videoListBox.BeginUpdate();
             videoListBox.Items.Clear();
             videoListBox.EndUpdate();
+
+            detectedSexualImagesTimes.Clear();
+            detectedWords.Clear();
+
 
             uploadButton.Enabled = true;
             scanButton.Enabled = true;
@@ -139,6 +145,32 @@ namespace vProfanity
                     StartTime = t.Seconds
                 });
             }
+        }
+
+        private void censorVideo(string videoHash)
+        {
+            AppDBContext appDBContext = new AppDBContext();
+            string detectedSexualTimesJson = appDBContext.GetDetectedSexualTimes(videoHash);
+
+            List<SexualFrameTime> sexualFrameTimes = JsonConvert.DeserializeObject<List<SexualFrameTime>>(detectedSexualTimesJson);
+
+
+            using (Py.GIL())
+            {
+                PyList sexualFrameTimesPyList = new PyList();
+                foreach (var t in sexualFrameTimes)
+                {
+                    PyObject sexualFrameTimeDict = new PyDict();
+                    sexualFrameTimeDict.SetItem("Milliseconds", new PyFloat(t.Milliseconds));
+                    sexualFrameTimeDict.SetItem("Seconds", new PyFloat(t.Seconds));
+                    sexualFrameTimeDict.SetItem("NextSeconds", new PyFloat(t.NextSeconds));
+                    sexualFrameTimesPyList.Append(sexualFrameTimeDict);
+                }
+                dynamic censor_second = Py.Import("censor_second");
+                dynamic result = censor_second.censor_video(axWindowsMediaPlayer1.URL, sexualFrameTimesPyList, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER);
+                MessageBox.Show($"The censored file is saved at {result.ToString()}");
+            }
+
         }
         private void scanVideo(string videoHash)
         {
@@ -230,7 +262,6 @@ namespace vProfanity
                 return;
             }
             string videoHash = FileHashGenerator.GetFileHash(axWindowsMediaPlayer1.URL);
-
             AppDBContext appDBContext = new AppDBContext();
 
             if (appDBContext.HasRecord(videoHash))
@@ -238,6 +269,8 @@ namespace vProfanity
                 DialogResult result = MessageBox.Show("There was a scan performed before, do you want to reuse its data?", "Information", MessageBoxButtons.YesNo);
                 if (result == DialogResult.Yes)
                 {
+                    _setDefaultControlState();
+
                     string transcriptJson = appDBContext.GetTranscript(videoHash);
                     if (transcriptJson != null)
                     {
@@ -258,6 +291,7 @@ namespace vProfanity
                 }
             }
 
+            _setDefaultControlState();
 
             uploadButton.Enabled = false;
             scanButton.Text = "Scanning";
@@ -437,10 +471,26 @@ namespace vProfanity
 
         private void Main_Load(object sender, EventArgs e)
         {
+            using(var form = new DependencyDownloaderForm())
+            {
+                form.Show(this);
+            }
         }
 
-        private void censorButton_Click(object sender, EventArgs e)
+        private async void censorButton_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(axWindowsMediaPlayer1.URL))
+            {
+                MessageBox.Show("Please upload video");
+                return;
+            }
+
+            uploadButton.Enabled = false;
+            scanButton.Enabled = false;
+            censorButton.Enabled = false;
+            censorButton.Text = "Censoring";
+            exportButton.Enabled = false;
+
             string videoHash = FileHashGenerator.GetFileHash(axWindowsMediaPlayer1.URL);
             AppDBContext appDBContext = new AppDBContext();
             string detectedSexualTimesJson = appDBContext.GetDetectedSexualTimes(videoHash);
@@ -449,31 +499,16 @@ namespace vProfanity
                 MessageBox.Show("There is no sexual conted detected.");
                 return;
             }
-            List<SexualFrameTime> sexualFrameTimes = JsonConvert.DeserializeObject<List<SexualFrameTime>>(detectedSexualTimesJson);
-            
-
-            using (Py.GIL())
-            {
-                PyList sexualFrameTimesPyList = new PyList();
-                foreach (var t in sexualFrameTimes)
-                {
-                    PyObject sexualFrameTimeDict = new PyDict();
-                    sexualFrameTimeDict.SetItem("Milliseconds", new PyFloat(t.Milliseconds));
-                    sexualFrameTimeDict.SetItem("Seconds", new PyFloat(t.Seconds));
-                    sexualFrameTimeDict.SetItem("NextSeconds", new PyFloat(t.NextSeconds));
-                    sexualFrameTimesPyList.Append(sexualFrameTimeDict);
-                }
-                dynamic censor_second = Py.Import("censor_second");
-                dynamic result = censor_second.censor_video(axWindowsMediaPlayer1.URL, sexualFrameTimesPyList);
-                MessageBox.Show($"The censored file is saved at {result.ToString()}");
-            }
-            
 
 
-            //var image = File.ReadAllBytes(@"D:\School\Thesis\Dataset\vivamax\0eba56f7-b5cf-4a0d-96dd-9bda393c32e9_153.jpg");
-            //var input = new ModelInput() { ImageSource = image };
-            //var result = VProfanityModel.Predict(input);
-            //MessageBox.Show(result.PredictedLabel);
+
+            await Task.Run(() => censorVideo(videoHash));
+
+            uploadButton.Enabled = true;
+            scanButton.Enabled = true;
+            censorButton.Enabled = true;
+            censorButton.Text = "Censor";
+            exportButton.Enabled = true;
         }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
@@ -482,8 +517,13 @@ namespace vProfanity
 
         }
 
-
-
+        private void Main_Shown(object sender, EventArgs e)
+        {
+            using (var form = new DependencyDownloaderForm())
+            {
+                form.ShowDialog(this);
+            }
+        }
     }
 
 

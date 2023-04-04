@@ -18,6 +18,9 @@ namespace vProfanity
         public static readonly string FFMPEG_EXE = Path.Combine(FFMPEG_FOLDER, "bin");
         public static readonly string PYTHON_UTILS_FOLDER = Path.Combine(Environment.CurrentDirectory, "utilspy");
         public static readonly string MODEL_PATH = Path.Combine(Environment.CurrentDirectory, "vProfanityModel.zip");
+        public static readonly string CENSORED_VIDEO_OUTPUT_FOLER = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "vProfanity");
+
+
 
     }
 

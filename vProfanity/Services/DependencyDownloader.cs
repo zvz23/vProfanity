@@ -10,19 +10,22 @@ namespace vProfanity.Services
 {
     public static class DependencyDownloader
     {
-        public static readonly  string DOWNLOAD_PAGE  = "https://drive.google.com/uc?id=1_wMubLljuMEOxo1T07PoGd0YGTx6hqcw";
+        public static readonly  string DOWNLOAD_PAGE  = "https://drive.google.com/uc?id=1_wMubLljuMEOxo1T07PoGd0YGTx6hqcw&export=download";
 
         public static async Task Download()
         {
-            var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(DOWNLOAD_PAGE);
-            var html = await response.Content.ReadAsStringAsync();
+            using(var httpClient = new HttpClient())
+            {
+                var response = await httpClient.GetAsync(DOWNLOAD_PAGE);
+                var html = await response.Content.ReadAsStringAsync();
 
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
-            var form = htmlDoc.DocumentNode.SelectSingleNode("//form[@id='download-form']");
-            string downloadUrl = form.GetAttributeValue<string>("action", null);
-
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(html);
+                var form = htmlDoc.DocumentNode.SelectSingleNode("//form[@id='download-form']");
+                string downloadUrl = form.GetAttributeValue<string>("action", null);
+            }
+            
+            
 
 
         }
