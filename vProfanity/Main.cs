@@ -105,9 +105,8 @@ namespace vProfanity
             }
         }
 
-        private void loadWordsFromJson(string transcriptJson)
+        private void loadWordsFromTranscript(List<TranscriptChunk> transcript)
         {
-            List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcriptJson);
             AppDBContext appDBContext = new AppDBContext();
             foreach (var t in transcript)
             {
@@ -217,19 +216,27 @@ namespace vProfanity
 
         }
 
+        private List<object> FindProjectWordsFromTranscript(List<TranscriptChunk> transcript)
+        {
+
+        }
+         
+
+
         private void scanAudio(string videoHash) 
         {
             using(Py.GIL())
             {
                 dynamic speechtotext = Py.Import("speechtotext");
-                dynamic transcript_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL);
-                string transcript_json_string = transcript_json.ToString();
-                List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcript_json_string);
-                if (transcript.Count > 0)
+                dynamic speech_to_text_result_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL);
+                string speech_to_text_result_string = speech_to_text_result_json.ToString();
+
+                SpeechToTextResult speechToTextResult = JsonConvert.DeserializeObject<SpeechToTextResult>(speech_to_text_result_string);
+                if (speechToTextResult.transcript.Count > 0)
                 {
                     var appDBContext = new AppDBContext();
-                    appDBContext.SaveTranscript(videoHash, transcript_json_string);
-                    loadWordsFromJson(transcript_json_string);
+                    appDBContext.SaveTranscript(videoHash, JsonConvert.SerializeObject(speechToTextResult.transcript));
+                    loadWordsFromTranscript(speechToTextResult.transcript);
                 }
 
             }
@@ -243,7 +250,8 @@ namespace vProfanity
             string transcriptJson = appDBContext.GetTranscript(videoHash);
             if (transcriptJson != null)
             {
-                loadWordsFromJson(transcriptJson);
+                List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcriptJson);
+                loadWordsFromTranscript(transcript);
 
             }
 
@@ -275,7 +283,8 @@ namespace vProfanity
                     if (transcriptJson != null)
                     {
                         audioListBox.BeginUpdate();
-                        loadWordsFromJson(transcriptJson);
+                        List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcriptJson);
+                        loadWordsFromTranscript(transcript);
                         audioListBox.Items.AddRange(detectedWords.ToArray());
                         audioListBox.EndUpdate();
                     }
@@ -524,6 +533,11 @@ namespace vProfanity
                 form.ShowDialog(this);
             }
         }
+
+        private void Main_Load_1(object sender, EventArgs e)
+        {
+
+        }
     }
 
 
@@ -540,7 +554,11 @@ namespace vProfanity
             return Word;
         }
     }
-
+    public class SpeechToTextResult
+    {
+        public string wav_file { get; set; }
+        public List<TranscriptChunk> transcript { get; set; }
+    }
     public class TranscriptChunk
     {
         public double start { get; set; }

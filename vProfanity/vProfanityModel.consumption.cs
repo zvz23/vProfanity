@@ -47,7 +47,7 @@ namespace vProfanity
 
         #endregion
 
-        private static string MLNetModelPath = @"C:\Users\Nikki\Documents\Ziegfred\vProfanity\vProfanity\vProfanityModel.zip";
+        private static string MLNetModelPath = @"C:\Users\Ziegfred\source\repos\vProfanity\vProfanity\vProfanityModel.zip";
 
         public static readonly Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(() => CreatePredictEngine(), true);
 

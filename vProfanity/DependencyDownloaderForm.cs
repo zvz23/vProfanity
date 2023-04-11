@@ -12,6 +12,8 @@ using System.Windows.Forms;
 using vProfanity.Services;
 using HtmlAgilityPack;
 using System.IO;
+using System.Security.Policy;
+using System.Net;
 
 namespace vProfanity
 {
@@ -20,70 +22,59 @@ namespace vProfanity
         public DependencyDownloaderForm()
         {
             InitializeComponent();
-            progressBar1.Maximum = 100;
-            progressBar1.Step = 1;
-            progressBar1.Value = 0;
             
         }
-       
-        private async void button1_Click(object sender, EventArgs e)
+
+        private void button1_Click(object sender, EventArgs e)
         {
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.Timeout = TimeSpan.FromMinutes(5);
-                
+            button1.Enabled = false;
+            backgroundWorker1.WorkerReportsProgress = true;
+            backgroundWorker1.RunWorkerAsync();
 
-                var response = await httpClient.GetAsync(DependencyDownloader.DOWNLOAD_PAGE);
-                var html = await response.Content.ReadAsStringAsync();
-
-                var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-                htmlDoc.LoadHtml(html);
-                var form = htmlDoc.DocumentNode.SelectSingleNode("//form[@id='download-form']");
-                string downloadUrl = form.GetAttributeValue<string>("action", null);
-                string fileName = Path.Combine(AppConstants.APP_DATA_FOLDER_NAME, "vProfanityModel.zip");
-
-                response = await httpClient.PostAsync(downloadUrl, null);
-                response.EnsureSuccessStatusCode();
-                var totalBytes = response.Content.Headers.ContentLength;
-
-                using (var contentStream = await response.Content.ReadAsStreamAsync())
-                {
-                    using (var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
-                    {
-                        var buffer = new byte[8192];
-                        var totalBytesRead = 0L;
-                        var bytesRead = 0;
-
-                        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                        {
-                            await fileStream.WriteAsync(buffer, 0, bytesRead);
-
-                            totalBytesRead += bytesRead;
-
-                            if (totalBytes.HasValue)
-                            {
-                                var percentage = (totalBytesRead * 100) / totalBytes.Value;
-                                progressBar1.Invoke(new Action(() => progressBar1.Value = (int)percentage));
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            
+            using (var webClient = new WebClient())
+            {
+                webClient.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
+                string html = webClient.DownloadString(DependencyDownloader.DOWNLOAD_PAGE);
+                var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(html);
+                var form = htmlDoc.DocumentNode.SelectSingleNode("//form[@id='download-form']");
+                string downloadUrl = form.GetAttributeValue<string>("action", null);
+
+                webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
+                webClient.DownloadFileAsync(new Uri(downloadUrl), @"D:\vProfanityModel.zip");
+                while (webClient.IsBusy)
+                {
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+
+
+
         }
+        private void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            // Report the progress of the download to the BackgroundWorker
+            backgroundWorker1.ReportProgress(e.ProgressPercentage);
+        }
+
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            // Update the progress bar with the value of e.ProgressPercentage
             progressBar1.Value = e.ProgressPercentage;
-            // Check if a message was passed with the progress update
-            if (e.UserState != null)
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Error != null)
             {
-                // Display the error message on the UI thread
-                MessageBox.Show(e.UserState.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error: " + e.Error.Message);
+            }
+            else
+            {
+                MessageBox.Show("Download complete.");
             }
         }
     }

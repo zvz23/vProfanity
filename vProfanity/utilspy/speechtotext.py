@@ -31,9 +31,7 @@ def speech_to_text(input_file: str):
                     'text': result[0]['transcript']
                 })
     if len(transcript) > 0:
-        return json.dumps(transcript)
+        return json.dumps({'wav_file': wav_file, 'transcript': transcript})
     else:
         return None
-    # with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
-    #         json.dump(transcript, f)
-    #         return f.name
+
