@@ -23,6 +23,7 @@ namespace vProfanity
 
         private readonly List<WordOption> detectedWords = new List<WordOption>();
         private readonly List<SexualOption> detectedSexualImagesTimes = new List<SexualOption>();
+        private string currentFileHash;
         private readonly CheckedListBox audioListBox;
         private readonly CheckedListBox videoListBox;
         public Main()
@@ -100,13 +101,15 @@ namespace vProfanity
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     axWindowsMediaPlayer1.URL = openFileDialog.FileName;
+                    currentFileHash = FileHashGenerator.GetFileHash(axWindowsMediaPlayer1.URL);
                     _setDefaultControlState();
                 }
             }
         }
 
-        private void loadWordsFromTranscript(List<TranscriptChunk> transcript)
+        private void loadWordsFromTranscriptJson(string transcriptJson)
         {
+            List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcriptJson);
             AppDBContext appDBContext = new AppDBContext();
             foreach (var t in transcript)
             {
@@ -128,6 +131,10 @@ namespace vProfanity
                 }
 
             }
+            audioListBox.BeginUpdate();
+            audioListBox.Items.AddRange(detectedWords.ToArray());
+            audioListBox.EndUpdate();
+
         }
 
         public void loadDetectedSexualFromJson(string detectedSexualFrameTimesJson)
@@ -144,6 +151,10 @@ namespace vProfanity
                     StartTime = t.Seconds
                 });
             }
+
+            videoListBox.BeginUpdate();
+            videoListBox.Items.AddRange(detectedSexualImagesTimes.ToArray());
+            videoListBox.EndUpdate();
         }
 
         private void censorVideo(string videoHash)
@@ -190,15 +201,6 @@ namespace vProfanity
                 var result = VProfanityModel.Predict(input);
                 if (result.PredictedLabel == "2")
                 {
-
-                    TimeSpan duration = TimeSpan.FromMilliseconds(frameInfo.Milliseconds);
-                    string durationString = duration.ToString(@"hh\:mm\:ss");
-                    
-                    detectedSexualImagesTimes.Add(new SexualOption
-                    {
-                        DurationFormat = durationString,
-                        StartTime = frameInfo.Seconds
-                    });
                     sexualFrameTimes.Add(new SexualFrameTime
                     {
                         Milliseconds = frameInfo.Milliseconds,
@@ -218,25 +220,24 @@ namespace vProfanity
 
         private List<object> FindProjectWordsFromTranscript(List<TranscriptChunk> transcript)
         {
-
+            return null;
         }
          
 
 
         private void scanAudio(string videoHash) 
         {
-            using(Py.GIL())
+            using (Py.GIL())
             {
                 dynamic speechtotext = Py.Import("speechtotext");
                 dynamic speech_to_text_result_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL);
                 string speech_to_text_result_string = speech_to_text_result_json.ToString();
 
-                SpeechToTextResult speechToTextResult = JsonConvert.DeserializeObject<SpeechToTextResult>(speech_to_text_result_string);
-                if (speechToTextResult.transcript.Count > 0)
+                List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(speech_to_text_result_string);
+                if (transcript.Count > 0)
                 {
                     var appDBContext = new AppDBContext();
-                    appDBContext.SaveTranscript(videoHash, JsonConvert.SerializeObject(speechToTextResult.transcript));
-                    loadWordsFromTranscript(speechToTextResult.transcript);
+                    appDBContext.SaveTranscript(videoHash, speech_to_text_result_string);
                 }
 
             }
@@ -250,8 +251,7 @@ namespace vProfanity
             string transcriptJson = appDBContext.GetTranscript(videoHash);
             if (transcriptJson != null)
             {
-                List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcriptJson);
-                loadWordsFromTranscript(transcript);
+                loadWordsFromTranscriptJson(transcriptJson);
 
             }
 
@@ -264,7 +264,7 @@ namespace vProfanity
         }
         private async void scanButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(axWindowsMediaPlayer1.URL))
+            if (currentFileHash == null)
             {
                 MessageBox.Show("Please upload video");
                 return;
@@ -282,9 +282,7 @@ namespace vProfanity
                     string transcriptJson = appDBContext.GetTranscript(videoHash);
                     if (transcriptJson != null)
                     {
-                        audioListBox.BeginUpdate();
-                        List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(transcriptJson);
-                        loadWordsFromTranscript(transcript);
+                        loadWordsFromTranscriptJson(transcriptJson);
                         audioListBox.Items.AddRange(detectedWords.ToArray());
                         audioListBox.EndUpdate();
                     }
@@ -307,23 +305,11 @@ namespace vProfanity
             scanButton.Enabled = false;
             censorButton.Enabled = false;
             exportButton.Enabled = false;
-            await Task.Run(() => scanVideo(videoHash));
-            await Task.Run(() => scanAudio(videoHash));
-            if (detectedSexualImagesTimes.Count > 0)
-            {
-                videoListBox.BeginUpdate();
-                videoListBox.Items.Clear();
-                videoListBox.Items.AddRange(detectedSexualImagesTimes.ToArray());
-                videoListBox.EndUpdate();
-            }
-            if (detectedWords.Count > 0)
-            {
-                audioListBox.BeginUpdate();
-                audioListBox.Items.Clear();
-                audioListBox.Items.AddRange(detectedWords.ToArray());
-                audioListBox.EndUpdate();
-            }
- 
+            var task1 =  Task.Run(() => scanVideo(videoHash));
+            var task2 =  Task.Run(() => scanAudio(videoHash));
+            await Task.WhenAll(task1, task2);
+
+            loadFromDb(currentFileHash);
 
             uploadButton.Enabled = true;
             scanButton.Text = "Scan";
@@ -553,11 +539,6 @@ namespace vProfanity
         {
             return Word;
         }
-    }
-    public class SpeechToTextResult
-    {
-        public string wav_file { get; set; }
-        public List<TranscriptChunk> transcript { get; set; }
     }
     public class TranscriptChunk
     {
