@@ -1,0 +1,56 @@
+from moviepy.editor import *
+from uuid import uuid4
+import os
+
+def censor(video_file: str, segments: dict, output_path: str):
+    output_file = os.path.join(output_path, f'{str(uuid4())}.mp4')
+    source_video = VideoFileClip(video_file)
+
+    video_segments = segments['video']
+    audio_segments = segments['audio']
+
+    edited_video_clips = []
+    last_video_end_time = 0
+
+    for segment in video_segments:
+        start_time, end_time = segment
+        print(start_time)
+        print(end_time)
+        edited_video_clips.append(source_video.subclip(last_video_end_time, start_time))
+        black_clip = ColorClip(size=source_video.size, color=(0, 0, 0), duration=end_time - start_time)
+        edited_video_clips.append(black_clip)
+        last_video_end_time = end_time
+
+    edited_video_clips.append(source_video.subclip(last_video_end_time))
+
+    censored_sexual_video = concatenate_videoclips(edited_video_clips)
+
+    edited_video_clips = []
+    last_video_end_time = 0
+
+    for segment in audio_segments:
+        start_time, end_time = segment
+        edited_video_clips.append(censored_sexual_video.subclip(last_video_end_time, start_time))
+        no_audio_clip = censored_sexual_video.subclip(start_time, end_time).without_audio()
+        edited_video_clips.append(no_audio_clip)
+        last_video_end_time = end_time
+
+    edited_video_clips.append(censored_sexual_video.subclip(last_video_end_time))
+
+    censored_profanity_video = concatenate_videoclips(edited_video_clips)
+
+    
+    censored_profanity_video.write_videofile(output_file)
+
+
+    return output_file
+
+
+if __name__ == '__main__':
+    video_file = r"D:\Ziegfred\Videos\bullying.mp4"
+    output_file = r"D:\Ziegfred\Videos"
+    segments = {
+        'video': [(2, 3)],
+        'audio': [(0, 7)]
+    }
+    censor(video_file, segments, output_file)

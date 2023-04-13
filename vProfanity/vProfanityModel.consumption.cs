@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
+using Tensorflow.Operations.Initializers;
+
 namespace vProfanity
 {
     public partial class VProfanityModel
@@ -47,7 +49,6 @@ namespace vProfanity
 
         #endregion
 
-        private static string MLNetModelPath = @"C:\Users\Ziegfred\source\repos\vProfanity\vProfanity\vProfanityModel.zip";
 
         public static readonly Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(() => CreatePredictEngine(), true);
 
@@ -65,7 +66,7 @@ namespace vProfanity
         private static PredictionEngine<ModelInput, ModelOutput> CreatePredictEngine()
         {
             var mlContext = new MLContext();
-            ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var _);
+            ITransformer mlModel = mlContext.Model.Load(AppConstants.MODEL_PATH, out var _);
             return mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
         }
     }

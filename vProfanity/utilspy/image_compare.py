@@ -11,7 +11,7 @@ def is_frame_similar(frame1, frame2):
     mse = ((frame1 - frame2) ** 2).mean()
 
     # Compare the MSE to a threshold to determine similarity
-    threshold = 10 # Adjust this value as needed
+    threshold = 10 
     if mse < threshold:
         return True
     else:

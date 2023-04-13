@@ -194,12 +194,6 @@
       <DependentUpon>AddVideoRegionForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Constants.cs" />
-    <Compile Include="DependencyDownloaderForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DependencyDownloaderForm.Designer.cs">
-      <DependentUpon>DependencyDownloaderForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="ExtractForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -224,9 +218,6 @@
     <EmbeddedResource Include="AddVideoRegionForm.resx">
       <DependentUpon>AddVideoRegionForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="DependencyDownloaderForm.resx">
-      <DependentUpon>DependencyDownloaderForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="ExtractForm.resx">
       <DependentUpon>ExtractForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -243,6 +234,22 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="consume.py" />
+    <None Include="ffmpeg\LICENSE" />
+    <None Include="ffmpeg\presets\libvpx-1080p.ffpreset">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ffmpeg\presets\libvpx-1080p50_60.ffpreset">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ffmpeg\presets\libvpx-360p.ffpreset">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ffmpeg\presets\libvpx-720p.ffpreset">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ffmpeg\presets\libvpx-720p50_60.ffpreset">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="MLModel1.mbconfig" />
     <None Include="packages.config" />
     <None Include="profane.json" />
@@ -299,9 +306,6 @@
     <None Include="utilspy\calc.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="utilspy\censor_second.py">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="utilspy\constants.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -326,6 +330,21 @@
     <None Include="utilspy\speech_recognizer.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="utilspy\censor.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="ffmpeg\bin\ffmpeg.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ffmpeg\bin\ffplay.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ffmpeg\bin\ffprobe.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="ffmpeg\README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

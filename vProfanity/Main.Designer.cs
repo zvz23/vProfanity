@@ -30,7 +30,6 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             this.uploadButton = new System.Windows.Forms.Button();
-            this.listBox1 = new System.Windows.Forms.ListBox();
             this.scanButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.analyzeButton = new System.Windows.Forms.Button();
@@ -68,16 +67,6 @@
             this.uploadButton.UseVisualStyleBackColor = true;
             this.uploadButton.Click += new System.EventHandler(this.uploadButton_Click);
             // 
-            // listBox1
-            // 
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(567, 75);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.ScrollAlwaysVisible = true;
-            this.listBox1.Size = new System.Drawing.Size(303, 238);
-            this.listBox1.TabIndex = 2;
-            this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
-            // 
             // scanButton
             // 
             this.scanButton.Location = new System.Drawing.Point(124, 290);
@@ -99,7 +88,7 @@
             // 
             // analyzeButton
             // 
-            this.analyzeButton.Location = new System.Drawing.Point(670, 324);
+            this.analyzeButton.Location = new System.Drawing.Point(670, 326);
             this.analyzeButton.Name = "analyzeButton";
             this.analyzeButton.Size = new System.Drawing.Size(119, 23);
             this.analyzeButton.TabIndex = 5;
@@ -250,7 +239,7 @@
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Location = new System.Drawing.Point(567, 68);
+            this.tabControl1.Location = new System.Drawing.Point(567, 73);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(303, 254);
@@ -288,7 +277,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(795, 324);
+            this.button1.Location = new System.Drawing.Point(795, 326);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 23;
@@ -330,14 +319,14 @@
             this.Controls.Add(this.analyzeButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.scanButton);
-            this.Controls.Add(this.listBox1);
             this.Controls.Add(this.uploadButton);
             this.Controls.Add(this.axWindowsMediaPlayer1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Main_Load_1);
-            this.Shown += new System.EventHandler(this.Main_Shown);
+            this.Text = "vProfanity";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             this.tabControl1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).EndInit();
             this.ResumeLayout(false);
@@ -349,7 +338,6 @@
 
         private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer1;
         private System.Windows.Forms.Button uploadButton;
-        private System.Windows.Forms.ListBox listBox1;
         private System.Windows.Forms.Button scanButton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button analyzeButton;

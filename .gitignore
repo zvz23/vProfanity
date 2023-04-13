@@ -362,9 +362,11 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-#Dont include autosub
-**/autosub
+# Don't include model
+**/*.zip
 
-**/vProfanityModel.zip
-
+# Don't include virtual environment
 **/venv
+
+# Don't include ffmpeg
+**/ffmpeg
