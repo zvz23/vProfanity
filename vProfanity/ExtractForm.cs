@@ -82,8 +82,8 @@ namespace vProfanity
 
             extractButton.Text = "Extracting";
             extractButton.Enabled = false;
-            await videoExtractor.Split(VideoURL, filePath, TimeSpan.FromSeconds(SelectedItem.StartTime), TimeSpan.FromSeconds(SelectedItem.EndTime));
-            MessageBox.Show($"The file is saved to {filePath}");
+            await videoExtractor.Split(VideoURL, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER, TimeSpan.FromSeconds(SelectedItem.StartTime), TimeSpan.FromSeconds(SelectedItem.EndTime));
+            MessageBox.Show($"The file is saved to {filePath}", "Extraction Successful", MessageBoxButtons.OK);
             this.Close();
         }
 

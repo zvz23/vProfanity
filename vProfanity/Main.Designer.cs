@@ -51,7 +51,7 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.censorButton = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.addRegionButton = new System.Windows.Forms.Button();
             this.axWindowsMediaPlayer1 = new AxWMPLib.AxWindowsMediaPlayer();
             this.tabControl1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).BeginInit();
@@ -275,15 +275,15 @@
             this.censorButton.UseVisualStyleBackColor = true;
             this.censorButton.Click += new System.EventHandler(this.censorButton_Click);
             // 
-            // button1
+            // addRegionButton
             // 
-            this.button1.Location = new System.Drawing.Point(795, 326);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 23;
-            this.button1.Text = "Add";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.addRegionButton.Location = new System.Drawing.Point(795, 326);
+            this.addRegionButton.Name = "addRegionButton";
+            this.addRegionButton.Size = new System.Drawing.Size(75, 23);
+            this.addRegionButton.TabIndex = 23;
+            this.addRegionButton.Text = "Add Region";
+            this.addRegionButton.UseVisualStyleBackColor = true;
+            this.addRegionButton.Click += new System.EventHandler(this.addRegionButton_Click);
             // 
             // axWindowsMediaPlayer1
             // 
@@ -299,7 +299,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(910, 521);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.addRegionButton);
             this.Controls.Add(this.censorButton);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.label6);
@@ -327,6 +327,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "vProfanity";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
+            this.Load += new System.EventHandler(this.Main_Load);
             this.tabControl1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.axWindowsMediaPlayer1)).EndInit();
             this.ResumeLayout(false);
@@ -359,7 +360,7 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.Button censorButton;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button addRegionButton;
     }
 }
 

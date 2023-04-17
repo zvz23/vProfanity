@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using vProfanity.Services;
 using Python.Runtime;
+using Newtonsoft.Json;
 
 namespace vProfanity
 {
@@ -17,15 +18,11 @@ namespace vProfanity
         [STAThread]
         static void Main()
         {
-            string pythonDll = @"C:\Program Files\Python311\python311.dll";
-            Runtime.PythonDLL = pythonDll;
             Environment.SetEnvironmentVariable("PYTHONPATH", AppConstants.PYTHON_UTILS_FOLDER);
-            PythonEngine.Initialize();
-            var m_threadState = PythonEngine.BeginAllowThreads();
-
             Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
             if (!Directory.Exists(AppConstants.ABS_TEMP_FOLDER))
             {
                 Directory.CreateDirectory(AppConstants.ABS_TEMP_FOLDER);
@@ -33,6 +30,11 @@ namespace vProfanity
             if (!Directory.Exists(AppConstants.ABS_APP_DATA_FOLDER))
             {
                 Directory.CreateDirectory(AppConstants.ABS_APP_DATA_FOLDER);
+      
+            }
+            if (!File.Exists(Path.Combine(AppConstants.ABS_APP_DATA_FOLDER, "config.json")))
+            {
+                File.Copy(Path.Combine(Environment.CurrentDirectory, "defaultConfig.json"), Path.Combine(AppConstants.ABS_APP_DATA_FOLDER, "config.json"));
             }
 
             if (!Directory.Exists(AppConstants.CENSORED_VIDEO_OUTPUT_FOLER))
@@ -41,10 +43,13 @@ namespace vProfanity
             }
 
             AppDBContext.Initialize_Database();
+            
 
             Application.Run(new Main());
 
-          
+
+
         }
+        
     }
 }

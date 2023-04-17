@@ -12,9 +12,7 @@ def next_second(millisecond):
 
 
 
-def export_video_images_by_keyframes(video_file: str, folder_name: str):
-    temp_dir = tempfile.gettempdir()
-    output_dir = os.path.join(temp_dir, folder_name)
+def export_video_images_by_keyframes(video_file: str, output_dir: str):
 
     # # Create the output directory if it doesn't already exist
     if os.path.exists(output_dir):

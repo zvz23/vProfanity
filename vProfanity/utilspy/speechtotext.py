@@ -1,16 +1,15 @@
 from ffmpeg_utils import get_wav, split_region
 from speech_recognizer import get_speech_regions
 import speech_recognition as sr
-import tempfile
 import json
 
-def speech_to_text(input_file: str):
-    wav_file = get_wav(input_file)
+def speech_to_text(input_file: str, temp_dir: str):
+    wav_file = get_wav(input_file, temp_dir)
     regions = get_speech_regions(wav_file)
     r = sr.Recognizer()
     transcript = []
     for region in regions:
-        output_file = split_region(wav_file, region)
+        output_file = split_region(wav_file, region, temp_dir)
         wav_audio = sr.AudioFile(output_file)
         audio = None
         with wav_audio as source:

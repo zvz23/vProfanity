@@ -28,9 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.selectedFolderButton = new System.Windows.Forms.Button();
             this.outputFolderLabel = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.selectedWordLabel = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -44,16 +42,6 @@
             this.fileTypeComboBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
-            // selectedFolderButton
-            // 
-            this.selectedFolderButton.Location = new System.Drawing.Point(26, 94);
-            this.selectedFolderButton.Name = "selectedFolderButton";
-            this.selectedFolderButton.Size = new System.Drawing.Size(75, 23);
-            this.selectedFolderButton.TabIndex = 1;
-            this.selectedFolderButton.Text = "Open Folder";
-            this.selectedFolderButton.UseVisualStyleBackColor = true;
-            this.selectedFolderButton.Click += new System.EventHandler(this.selectedFolderButton_Click);
-            // 
             // outputFolderLabel
             // 
             this.outputFolderLabel.AutoSize = true;
@@ -61,15 +49,6 @@
             this.outputFolderLabel.Name = "outputFolderLabel";
             this.outputFolderLabel.Size = new System.Drawing.Size(0, 13);
             this.outputFolderLabel.TabIndex = 2;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(107, 99);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(47, 13);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Save to:";
             // 
             // label2
             // 
@@ -124,7 +103,7 @@
             // 
             // extractButton
             // 
-            this.extractButton.Location = new System.Drawing.Point(26, 147);
+            this.extractButton.Location = new System.Drawing.Point(26, 134);
             this.extractButton.Name = "extractButton";
             this.extractButton.Size = new System.Drawing.Size(75, 23);
             this.extractButton.TabIndex = 10;
@@ -135,7 +114,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(29, 124);
+            this.label5.Location = new System.Drawing.Point(29, 100);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(55, 13);
             this.label5.TabIndex = 11;
@@ -143,7 +122,7 @@
             // 
             // fileNameTextBox
             // 
-            this.fileNameTextBox.Location = new System.Drawing.Point(90, 121);
+            this.fileNameTextBox.Location = new System.Drawing.Point(90, 97);
             this.fileNameTextBox.Name = "fileNameTextBox";
             this.fileNameTextBox.Size = new System.Drawing.Size(100, 20);
             this.fileNameTextBox.TabIndex = 12;
@@ -151,7 +130,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(206, 124);
+            this.label6.Location = new System.Drawing.Point(206, 100);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(49, 13);
             this.label6.TabIndex = 13;
@@ -160,7 +139,7 @@
             // fileTypeComboBox
             // 
             this.fileTypeComboBox.FormattingEnabled = true;
-            this.fileTypeComboBox.Location = new System.Drawing.Point(261, 120);
+            this.fileTypeComboBox.Location = new System.Drawing.Point(261, 96);
             this.fileTypeComboBox.Name = "fileTypeComboBox";
             this.fileTypeComboBox.Size = new System.Drawing.Size(121, 21);
             this.fileTypeComboBox.TabIndex = 14;
@@ -170,7 +149,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(466, 198);
+            this.ClientSize = new System.Drawing.Size(435, 198);
             this.Controls.Add(this.fileTypeComboBox);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.fileNameTextBox);
@@ -182,14 +161,12 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.selectedWordLabel);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.outputFolderLabel);
-            this.Controls.Add(this.selectedFolderButton);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ExtractForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "ExtractForm";
+            this.Text = "vProfanity";
             this.Load += new System.EventHandler(this.ExtractForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -197,9 +174,7 @@
         }
 
         #endregion
-        private System.Windows.Forms.Button selectedFolderButton;
         private System.Windows.Forms.Label outputFolderLabel;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label selectedWordLabel;
         private System.Windows.Forms.Label label3;

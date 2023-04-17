@@ -66,7 +66,7 @@ namespace vProfanity
         private static PredictionEngine<ModelInput, ModelOutput> CreatePredictEngine()
         {
             var mlContext = new MLContext();
-            ITransformer mlModel = mlContext.Model.Load(AppConstants.MODEL_PATH, out var _);
+            ITransformer mlModel = mlContext.Model.Load(Environment.GetEnvironmentVariable("MODEL_PATH"), out var _);
             return mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
         }
     }

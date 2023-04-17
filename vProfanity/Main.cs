@@ -15,6 +15,9 @@ using Microsoft.ML;
 using Python.Runtime;
 using System.Threading.Tasks;
 using System.Net.Http;
+using Google.Protobuf.WellKnownTypes;
+using System.ComponentModel;
+using System.CodeDom;
 
 namespace vProfanity
 {
@@ -50,7 +53,6 @@ namespace vProfanity
             tabControl1.TabPages[0].Controls.Add(audioListBox);
             tabControl1.TabPages[1].Text = "Video";
             tabControl1.TabPages[1].Controls.Add(videoListBox);
-
 
         }
 
@@ -88,7 +90,7 @@ namespace vProfanity
                 }
             }
 
-            if (segmentsContainer["video"] == null && segmentsContainer["audio"] == null)
+            if (segmentsContainer["video"].Count == 0 && segmentsContainer["audio"].Count == 0)
             {
                 return null;
             }
@@ -134,8 +136,11 @@ namespace vProfanity
 
         private void uploadButton_Click(object sender, EventArgs e)
         {
-            uploadButton.Enabled = false;
-            uploadButton.Text = "Uploading";
+            uploadButton.Invoke((MethodInvoker)delegate
+            {
+                uploadButton.Enabled = false;
+                uploadButton.Text = "Uploading";
+            });
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
@@ -149,8 +154,11 @@ namespace vProfanity
                     _setDefaultControlState();
                 }
             }
-            uploadButton.Enabled = true;
-            uploadButton.Text = "Upload";
+            uploadButton.Invoke((MethodInvoker)delegate
+            {
+                uploadButton.Enabled = true;
+                uploadButton.Text = "Upload";
+            });
         }
 
         private void loadWordsFromTranscriptJson(string transcriptJson)
@@ -215,13 +223,34 @@ namespace vProfanity
             }
 
         }
+
+        public Image ResizeImage(Image image, int desiredHeight)
+        {
+            int originalWidth = image.Width;
+            int originalHeight = image.Height;
+
+            int newWidth = (int)((float)desiredHeight / originalHeight * originalWidth);
+
+            Bitmap resizedImage = new Bitmap(newWidth, desiredHeight);
+
+            using (Graphics graphics = Graphics.FromImage(resizedImage))
+            {
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                graphics.DrawImage(image, new Rectangle(0, 0, newWidth, desiredHeight));
+            }
+
+            return resizedImage;
+        }
+
         private void scanVideo(string videoHash)
         {
             List<FrameInfo> frameInfoList = null;
             using (Py.GIL())
             {
+                string videoFramesPath = Path.Combine(AppConstants.ABS_TEMP_FOLDER, videoHash);
                 dynamic image_exporter = Py.Import("image_exporter");
-                dynamic frames_info_json = image_exporter.export_video_images_by_keyframes(axWindowsMediaPlayer1.URL, videoHash);
+                dynamic frames_info_json = image_exporter.export_video_images_by_keyframes(axWindowsMediaPlayer1.URL, videoFramesPath);
                 frameInfoList = JsonConvert.DeserializeObject<List<FrameInfo>>(frames_info_json.ToString());
 
             }
@@ -229,8 +258,20 @@ namespace vProfanity
 
             foreach (var frameInfo in frameInfoList)
             {
-                var image = File.ReadAllBytes(frameInfo.FilePath);
-                var input = new ModelInput() { ImageSource = image };
+                byte[] imageBytes;
+                using (Image image = Image.FromFile(frameInfo.FilePath))
+                {
+                    using (Image resizedImage = ResizeImage(image, 320))
+                    {
+                        using (MemoryStream stream = new MemoryStream())
+                        {
+                            resizedImage.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                            imageBytes = stream.ToArray();
+                        }
+                    }
+                }
+                
+                var input = new ModelInput() { ImageSource = imageBytes };
                 var result = VProfanityModel.Predict(input);
                 if (result.PredictedLabel != "safe")
                 {
@@ -260,10 +301,11 @@ namespace vProfanity
 
         private void scanAudio(string videoHash) 
         {
+            string tempDirPath = Path.Combine(AppConstants.ABS_TEMP_FOLDER, videoHash);
             using (Py.GIL())
             {
                 dynamic speechtotext = Py.Import("speechtotext");
-                dynamic speech_to_text_result_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL);
+                dynamic speech_to_text_result_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL, tempDirPath);
                 string speech_to_text_result_string = speech_to_text_result_json.ToString();
 
                 List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(speech_to_text_result_string);
@@ -315,11 +357,20 @@ namespace vProfanity
             }
             
         }
+
+        private void deleteTempData(string videoHash)
+        {
+            string tempDir = Path.Combine(AppConstants.ABS_TEMP_FOLDER, videoHash);
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
         private async void scanButton_Click(object sender, EventArgs e)
         {
             if (currentFileHash == null)
             {
-                MessageBox.Show("Please upload a video first before scanning.", "No Video Uploaded");
+                MessageBox.Show("Please upload a video first before scanning.", "No Video Uploaded", MessageBoxButtons.OK);
                 return;
             }
 
@@ -338,26 +389,53 @@ namespace vProfanity
 
             _setDefaultControlState();
 
-            uploadButton.Enabled = false;
-            scanButton.Text = "Scanning";
-            scanButton.Enabled = false;
-            censorButton.Enabled = false;
-            exportButton.Enabled = false;
+            uploadButton.Invoke((MethodInvoker)delegate
+            {
+                uploadButton.Enabled = false;
+            });
+            scanButton.Invoke((MethodInvoker)delegate
+            {
+                scanButton.Text = "Scanning";
+                scanButton.Enabled = false;
+            });
+            censorButton.Invoke((MethodInvoker)delegate
+            {
+                censorButton.Enabled = false;
+            });
+
+            exportButton.Invoke((MethodInvoker)delegate
+            {
+                exportButton.Enabled = false;
+            });
             var task1 =  Task.Run(() => scanVideo(currentFileHash));
             var task2 =  Task.Run(() => scanAudio(currentFileHash));
             await Task.WhenAll(task1, task2);
 
+            await Task.Run(() => deleteTempData(currentFileHash));
             loadFromDb(currentFileHash);
+            uploadButton.Invoke((MethodInvoker)delegate
+            {
+                uploadButton.Enabled = true;
+            });
+            scanButton.Invoke((MethodInvoker)delegate
+            {
+                scanButton.Text = "Scan";
+                scanButton.Enabled = true;
+            });
+            censorButton.Invoke((MethodInvoker)delegate
+            {
+                censorButton.Enabled = true;
+            });
 
-            uploadButton.Enabled = true;
-            scanButton.Text = "Scan";
-            scanButton.Enabled = true;
-            censorButton.Enabled = true;
-            exportButton.Enabled = true;
+            exportButton.Invoke((MethodInvoker)delegate
+            {
+                exportButton.Enabled = true;
+            });
+
 
             int profaneCount = wordsOptions.Count(d => d.IsProfane);
             int sexualCount = sexualOptions.Count;
-            MessageBox.Show($"The scan has finished.\n\nScan results:\nFound sexual frames: {sexualCount}\nFound profane regions: {profaneCount}", "Scan complete");
+            MessageBox.Show($"The scan has finished.\n\nScan results:\nFound sexual frames: {sexualCount}\nFound profane regions: {profaneCount}", "Scan complete", MessageBoxButtons.OK);
 
         }
 
@@ -365,7 +443,7 @@ namespace vProfanity
         {
             if (string.IsNullOrEmpty(axWindowsMediaPlayer1.URL))
             {
-                MessageBox.Show("Please upload a video first before analyzing the transcript.", "No Video Uploaded");
+                MessageBox.Show("Please upload a video first before analyzing the transcript.", "No Video Uploaded", MessageBoxButtons.OK);
                 return;
             }
             AppDBContext dbContext = new AppDBContext();
@@ -373,7 +451,7 @@ namespace vProfanity
             string rawTranscript = dbContext.GetTranscript(currentFileHash);
             if (rawTranscript == null)
             {
-                MessageBox.Show("Please scan the video to generate transcript.\nIf there is still no transcript after scanning maybe the video does not contain speech", "No Transcript Found");
+                MessageBox.Show("Please scan the video to generate transcript.\nIf there is still no transcript after scanning maybe the video does not contain speech", "No Transcript Found", MessageBoxButtons.OK);
                 return;
             }
             analyzeButton.Text = "Analyzing";
@@ -419,7 +497,7 @@ namespace vProfanity
         {
             if (audioListBox.SelectedItem == null)
             {
-                MessageBox.Show("Please select a word from the Audio list before exporting.", "No Word Selected");
+                MessageBox.Show("Please select a word from the Audio list before exporting.", "No Word Selected", MessageBoxButtons.OK);
                 return;
             }
             using (ExtractForm extractForm = new ExtractForm())
@@ -472,12 +550,50 @@ namespace vProfanity
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void addRegionButton_Click(object sender, EventArgs e)
         {
+            if (currentFileHash == null)
+            {
+                MessageBox.Show("Please upload a video first before adding region.", "No Video Uploaded", MessageBoxButtons.OK);
+                return;
+            }
             using (AddVideoRegionForm form = new AddVideoRegionForm())
             {
-                form.ShowDialog(this);
+                form.VideodDuration = axWindowsMediaPlayer1.currentMedia.duration;
+                DialogResult result = form.ShowDialog(this);
+                if (result != DialogResult.OK)
+                {
+                    return;
+                }
+
+                if (form.SelectedAddRadio == AddVideoRegionForm.SelectedRadio.SECOND)
+                {
+                    addSecondToVideoListBox(form.SecondsEntered);
+                }
+
+
             }
+        }
+
+        private void addSecondToVideoListBox(double second)
+        {
+            videoListBox.BeginUpdate();
+            TimeSpan secondTs = TimeSpan.FromSeconds(second);
+            TimeSpan nextSecondTs = secondTs.Add(TimeSpan.FromSeconds(1));
+            string secondString = secondTs.ToString(@"hh\:mm\:ss");
+            videoListBox.Items.Add(new SexualOption
+            {
+                DurationFormat = secondString,
+                StartTime = second,
+                EndTime = nextSecondTs.Seconds
+
+            }, true);
+            videoListBox.EndUpdate();
+        }
+
+        private void addRangeToVideoListBox()
+        {
+
         }
 
 
@@ -485,31 +601,57 @@ namespace vProfanity
         {
             if (string.IsNullOrWhiteSpace(axWindowsMediaPlayer1.URL))
             {
-                MessageBox.Show("Please upload a video first before scanning.", "No Video Uploaded");
+                MessageBox.Show("Please upload a video first before scanning.", "No Video Uploaded", MessageBoxButtons.OK);
                 return;
             }
 
             Dictionary<string, List<List<double>>> segments = getSegmentsFromListBox();
             if (segments == null)
             {
-                MessageBox.Show("Please check at least one item from the video or audio lists", "No Items Selected");
+                MessageBox.Show("Please check at least one item from the video or audio lists", "No Items Selected", MessageBoxButtons.OK);
                 return;
             }
 
-            uploadButton.Enabled = false;
-            scanButton.Enabled = false;
-            censorButton.Enabled = false;
-            censorButton.Text = "Censoring";
-            exportButton.Enabled = false;
+            uploadButton.Invoke((MethodInvoker)delegate
+            {
+                uploadButton.Enabled = false;
+            });
+            scanButton.Invoke((MethodInvoker)delegate
+            {
+                scanButton.Enabled = false;
+            });
+            censorButton.Invoke((MethodInvoker)delegate
+            {
+                censorButton.Enabled = false;
+                censorButton.Text = "Censoring";
+            });
+
+            exportButton.Invoke((MethodInvoker)delegate
+            {
+                exportButton.Enabled = false;
+            });
 
             string censoredVideoPath = await Task.Run(() => censorVideo(axWindowsMediaPlayer1.URL, segments, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER));
 
-            uploadButton.Enabled = true;
-            scanButton.Enabled = true;
-            censorButton.Enabled = true;
-            censorButton.Text = "Censor";
-            exportButton.Enabled = true;
-            MessageBox.Show($"The censored file is saved at {censoredVideoPath}.", "Video Censored Successfully");
+            uploadButton.Invoke((MethodInvoker)delegate
+            {
+                uploadButton.Enabled = true;
+            });
+            scanButton.Invoke((MethodInvoker)delegate
+            {
+                scanButton.Enabled = true;
+            });
+            censorButton.Invoke((MethodInvoker)delegate
+            {
+                censorButton.Enabled = true;
+                censorButton.Text = "Censor";
+            });
+
+            exportButton.Invoke((MethodInvoker)delegate
+            {
+                exportButton.Enabled = true;
+            });
+            MessageBox.Show($"The censored file is saved at {censoredVideoPath}.", "Video Censored Successfully", MessageBoxButtons.OK);
         }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
@@ -518,6 +660,72 @@ namespace vProfanity
 
         }
 
+        private void Main_Load(object sender, EventArgs e)
+        {
+            bool loadResult = loadConfig();
+            if (!loadResult)
+            {
+                Application.Exit();
+                return;
+            }
+            Runtime.PythonDLL = Environment.GetEnvironmentVariable("PYTHON_DLL_PATH");
+            PythonEngine.Initialize();
+            var m_threadState = PythonEngine.BeginAllowThreads();
+
+        }
+
+        private bool loadConfig()
+        {
+            if (!File.Exists(AppConstants.CONFIG_PATH))
+            {
+                MessageBox.Show($"The program was not able to find the config file.\nPlease create a config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "Config File Not Found", MessageBoxButtons.OK);
+                return false;
+            }
+            string rawAppConfig = File.ReadAllText(AppConstants.CONFIG_PATH);
+            try
+            {
+                AppConfig appConfig = JsonConvert.DeserializeObject<AppConfig>(rawAppConfig);
+                if ((string.IsNullOrWhiteSpace(appConfig.FFMPEG_EXECUTABLES_PATH) || !Directory.Exists(appConfig.FFMPEG_EXECUTABLES_PATH)))
+                {
+                    MessageBox.Show($"The FFMPEG_EXECUTABLES_PATH was not set in the config file.\nPlease add the FFMPEG_EXECUTABLES_PATH in the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "MODEL_PATH NOT SET", MessageBoxButtons.OK);
+                    return false;
+                }
+                if ((string.IsNullOrWhiteSpace(appConfig.MODEL_PATH) || !File.Exists(appConfig.MODEL_PATH)))
+                {
+                    MessageBox.Show($"The MODEL_PATH was not set in the config file.\nPlease add the MODEL_PATH in the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "MODEL_PATH NOT SET", MessageBoxButtons.OK);
+                    return false;
+                }
+                if ((string.IsNullOrWhiteSpace(appConfig.PYTHON_DLL_PATH) || !File.Exists(appConfig.PYTHON_DLL_PATH)))
+                {
+                    MessageBox.Show($"The PYTHON_DLL_PATH was not set in the config file.\nPlease add the PYTHON_DLL_PATH in the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "PYTHON_DLL_PATH NOT SET", MessageBoxButtons.OK);
+                    return false;
+                }
+
+                Environment.SetEnvironmentVariable("FFMPEG_EXECUTABLES_PATH", appConfig.FFMPEG_EXECUTABLES_PATH);
+                Environment.SetEnvironmentVariable("PYTHON_DLL_PATH", appConfig.PYTHON_DLL_PATH);
+                Environment.SetEnvironmentVariable("MODEL_PATH", appConfig.MODEL_PATH);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show($"The program was not able to open the config file because of bad foramtting.\nPlease fix the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "Config File Invalid Format", MessageBoxButtons.OK);
+                return false;
+            }
+        }
+    }
+
+    public class AppConfig
+    {
+        [DefaultValue("")]
+
+        public string FFMPEG_EXECUTABLES_PATH { get; set; }
+        [DefaultValue("")]
+
+        public string MODEL_PATH { get; set; }
+        [DefaultValue("")]
+
+        public string PYTHON_DLL_PATH { get; set; }
     }
 
 
