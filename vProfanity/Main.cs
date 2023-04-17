@@ -292,12 +292,6 @@ namespace vProfanity
 
         }
 
-        private List<object> FindProjectWordsFromTranscript(List<TranscriptChunk> transcript)
-        {
-            return null;
-        }
-         
-
 
         private void scanAudio(string videoHash) 
         {
@@ -550,6 +544,8 @@ namespace vProfanity
             }
         }
 
+
+
         private void addRegionButton_Click(object sender, EventArgs e)
         {
             if (currentFileHash == null)
@@ -570,11 +566,46 @@ namespace vProfanity
                 {
                     addSecondToVideoListBox(form.SecondsEntered);
                 }
+                else if (form.SelectedAddRadio == AddVideoRegionForm.SelectedRadio.RANGE)
+                {
+                    addRangeToVideoListBox(form.StartRangeEntered, form.EndRangeEntered);
+                }
 
 
             }
         }
 
+        private void addRangeToVideoListBox(double startRange, double endRange)
+        {
+            TimeSpan startRangeTs = TimeSpan.FromSeconds(startRange);
+            TimeSpan endRangeTs = TimeSpan.FromSeconds(endRange);
+            TimeSpan startRangeNextSecondTs = startRangeTs.Add(TimeSpan.FromSeconds(1));
+            TimeSpan endRangeNextSecondTs = endRangeTs.Add(TimeSpan.FromSeconds(1));
+            string startRangeFormat = startRangeTs.ToString(@"hh\:mm\:ss");           
+            string endRangeFormat = endRangeTs.ToString(@"hh\:mm\:ss");
+
+            int start = Convert.ToInt32(startRangeTs.TotalSeconds);
+            int end = Convert.ToInt32(endRangeTs.TotalSeconds);
+            videoListBox.BeginUpdate();
+
+            for(int i = start; i <= end; i++)
+            {
+                videoListBox.Items.Add(new SexualOption
+                {
+                    DurationFormat = TimeSpan.FromSeconds(Convert.ToDouble(i)).ToString(@"hh\:mm\:ss"),
+                    StartTime = TimeSpan.FromSeconds(i).TotalSeconds,
+                    EndTime = TimeSpan.FromSeconds(i).Add(TimeSpan.FromSeconds(1)).TotalSeconds
+
+                }, true);
+            }
+
+
+            videoListBox.EndUpdate();
+
+
+
+
+        }
         private void addSecondToVideoListBox(double second)
         {
             videoListBox.BeginUpdate();
@@ -591,10 +622,6 @@ namespace vProfanity
             videoListBox.EndUpdate();
         }
 
-        private void addRangeToVideoListBox()
-        {
-
-        }
 
 
         private async void censorButton_Click(object sender, EventArgs e)
