@@ -18,6 +18,7 @@ using System.Net.Http;
 using Google.Protobuf.WellKnownTypes;
 using System.ComponentModel;
 using System.CodeDom;
+using Xabe.FFmpeg;
 
 namespace vProfanity
 {
@@ -49,10 +50,34 @@ namespace vProfanity
             };
             videoListBox.SelectedIndexChanged += videoListBox_SelectedIndexChanged;
             audioListBox.SelectedIndexChanged += audioListBox_SelectedIndexChanged;
+            audioListBox.ItemCheck += audioListBox_ItemCheck;
             tabControl1.TabPages[0].Text = "Audio";
             tabControl1.TabPages[0].Controls.Add(audioListBox);
             tabControl1.TabPages[1].Text = "Video";
             tabControl1.TabPages[1].Controls.Add(videoListBox);
+
+        }
+
+        private void audioListBox_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            audioListBox.ItemCheck -= audioListBox_ItemCheck;
+            WordOption selectedWord = (WordOption)audioListBox.SelectedItem;
+            
+            for (int i = 0; i < audioListBox.Items.Count; i++)
+            {
+                if (!ReferenceEquals(audioListBox.SelectedItem, audioListBox.Items[i]))
+                {
+                    WordOption tempWordOption = (WordOption)audioListBox.Items[i];
+                    if (tempWordOption.StartTime == selectedWord.StartTime && tempWordOption.EndTime == tempWordOption.EndTime)
+                    {
+                        audioListBox.SetItemChecked(i, e.NewValue == CheckState.Checked);
+                    }
+                }
+
+            }
+            
+            audioListBox.ItemCheck += audioListBox_ItemCheck;
+
 
         }
 
@@ -64,30 +89,33 @@ namespace vProfanity
 
             if (videoListBox.CheckedItems.Count > 0)
             {
+                HashSet<Segment> tempVideoSegments = new HashSet<Segment>();
+
                 foreach (var option in videoListBox.CheckedItems)
                 {
                     SexualOption sexualOption = (SexualOption)option;
-                    List<double> segment = new List<double>()
-                    {
-                        sexualOption.StartTime,
-                        sexualOption.EndTime
-                    };
-                    segmentsContainer["video"].Add(segment); 
+                    tempVideoSegments.Add(new Segment { Start = sexualOption.StartTime, End = sexualOption.EndTime });
+                }
+                foreach (var segment in tempVideoSegments)
+                {
+                    segmentsContainer["video"].Add(new List<double> { segment.Start, segment.End });
                 }
             }
 
             if (audioListBox.CheckedItems.Count > 0)
             {
+                HashSet<Segment> tempAudioSegments = new HashSet<Segment>();
+
                 foreach (var option in audioListBox.CheckedItems)
                 {
                     WordOption wordOption = (WordOption)option;
-                    List<double> segment = new List<double>()
-                    {
-                        wordOption.StartTime,
-                        wordOption.EndTime
-                    };
-                    segmentsContainer["audio"].Add(segment);
+                    tempAudioSegments.Add(new Segment { Start = wordOption.StartTime, End = wordOption.EndTime });
                 }
+                foreach (var segment in tempAudioSegments)
+                {
+                    segmentsContainer["audio"].Add(new List<double> { segment.Start, segment.End });
+                }
+
             }
 
             if (segmentsContainer["video"].Count == 0 && segmentsContainer["audio"].Count == 0)
@@ -179,13 +207,14 @@ namespace vProfanity
                 wordsOptions.AddRange(wordOptions);
                    
             }
-
+            audioListBox.ItemCheck -= audioListBox_ItemCheck;
             audioListBox.BeginUpdate();
             foreach (var option in wordsOptions)
             {
                 audioListBox.Items.Add(option, option.IsProfane);
             }
             audioListBox.EndUpdate();
+            audioListBox.ItemCheck += audioListBox_ItemCheck;
 
         }
 
@@ -300,15 +329,15 @@ namespace vProfanity
             {
                 dynamic speechtotext = Py.Import("speechtotext");
                 dynamic speech_to_text_result_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL, tempDirPath);
+                if(speech_to_text_result_json == null)
+                {
+                    return;
+                }
                 string speech_to_text_result_string = speech_to_text_result_json.ToString();
-
                 List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(speech_to_text_result_string);
                 markTranscriptProfanity(transcript);
-                if (transcript.Count > 0)
-                {
-                    var appDBContext = new AppDBContext();
-                    appDBContext.SaveTranscript(videoHash, JsonConvert.SerializeObject(transcript));
-                }
+                var appDBContext = new AppDBContext();
+                appDBContext.SaveTranscript(videoHash, JsonConvert.SerializeObject(transcript));
 
             }
 
@@ -458,17 +487,25 @@ namespace vProfanity
             }
             PerspectiveAPI perspectiveAPI = new PerspectiveAPI();
             ScoreResponse scoreResponse = await perspectiveAPI.AnaylizeText(stringBuilder.ToString());
-            toxicityValueLabel.Text = $"{scoreResponse.attributeScores.TOXICITY.summaryScore.value[2]} of 10 people";
-            identityAttackValueLabel.Text = $"{scoreResponse.attributeScores.IDENTITY_ATTACK.summaryScore.value[2]} of 10 people";
-            insultValueLabel.Text = $"{scoreResponse.attributeScores.INSULT.summaryScore.value[2]} of 10 people";
-            profanityValueLabel.Text = $"{scoreResponse.attributeScores.PROFANITY.summaryScore.value[2]} of 10 people";
-            threatValueLabel.Text = $"{scoreResponse.attributeScores.THREAT.summaryScore.value[2]} of 10 people";
+            string toxicityStr = scoreResponse.attributeScores.TOXICITY.summaryScore.value.ToString();
+            string identityAttackStr = scoreResponse.attributeScores.IDENTITY_ATTACK.summaryScore.value.ToString();
+            string insultStr = scoreResponse.attributeScores.INSULT.summaryScore.value.ToString();
+            string profanityStr = scoreResponse.attributeScores.PROFANITY.summaryScore.value.ToString();
+            string threatStr = scoreResponse.attributeScores.THREAT.summaryScore.value.ToString();
+
+            toxicityValueLabel.Text = $"{toxicityStr[2]} of out 10 people";
+            identityAttackValueLabel.Text = $"{identityAttackStr[2]} of out 10 people";
+            insultValueLabel.Text = $"{insultStr[2]} of out 10 people";
+            profanityValueLabel.Text = $"{profanityStr[2]} of out 10 people";
+            threatValueLabel.Text = $"{threatStr[2]} of out 10 people";
+
             analyzeButton.Text = "Analyze Transcript";
             analyzeButton.Enabled = true;
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)
         {
+            audioListBox.ItemCheck -= audioListBox_ItemCheck;
             audioListBox.BeginUpdate();
             audioListBox.Items.Clear();
             if (!string.IsNullOrWhiteSpace(searchBox.Text))
@@ -485,6 +522,8 @@ namespace vProfanity
             }
 
             audioListBox.EndUpdate();
+            audioListBox.ItemCheck += audioListBox_ItemCheck;
+
         }
 
         private void exportButton_Click(object sender, EventArgs e)
@@ -506,6 +545,7 @@ namespace vProfanity
 
         private void filterComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            audioListBox.ItemCheck -= audioListBox_ItemCheck;
             audioListBox.BeginUpdate();
             audioListBox.Items.Clear();
             if (filterComboBox.Text == "Profane")
@@ -522,6 +562,7 @@ namespace vProfanity
             }
 
             audioListBox.EndUpdate();
+            audioListBox.ItemCheck += audioListBox_ItemCheck;
         }
 
         private void videoListBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -579,10 +620,6 @@ namespace vProfanity
         {
             TimeSpan startRangeTs = TimeSpan.FromSeconds(startRange);
             TimeSpan endRangeTs = TimeSpan.FromSeconds(endRange);
-            TimeSpan startRangeNextSecondTs = startRangeTs.Add(TimeSpan.FromSeconds(1));
-            TimeSpan endRangeNextSecondTs = endRangeTs.Add(TimeSpan.FromSeconds(1));
-            string startRangeFormat = startRangeTs.ToString(@"hh\:mm\:ss");           
-            string endRangeFormat = endRangeTs.ToString(@"hh\:mm\:ss");
 
             int start = Convert.ToInt32(startRangeTs.TotalSeconds);
             int end = Convert.ToInt32(endRangeTs.TotalSeconds);
@@ -686,60 +723,7 @@ namespace vProfanity
             PythonEngine.Shutdown();
 
         }
-
-        private void Main_Load(object sender, EventArgs e)
-        {
-            bool loadResult = loadConfig();
-            if (!loadResult)
-            {
-                Application.Exit();
-                return;
-            }
-            Runtime.PythonDLL = Environment.GetEnvironmentVariable("PYTHON_DLL_PATH");
-            PythonEngine.Initialize();
-            var m_threadState = PythonEngine.BeginAllowThreads();
-
-        }
-
-        private bool loadConfig()
-        {
-            if (!File.Exists(AppConstants.CONFIG_PATH))
-            {
-                MessageBox.Show($"The program was not able to find the config file.\nPlease create a config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "Config File Not Found", MessageBoxButtons.OK);
-                return false;
-            }
-            string rawAppConfig = File.ReadAllText(AppConstants.CONFIG_PATH);
-            try
-            {
-                AppConfig appConfig = JsonConvert.DeserializeObject<AppConfig>(rawAppConfig);
-                if ((string.IsNullOrWhiteSpace(appConfig.FFMPEG_EXECUTABLES_PATH) || !Directory.Exists(appConfig.FFMPEG_EXECUTABLES_PATH)))
-                {
-                    MessageBox.Show($"The FFMPEG_EXECUTABLES_PATH was not set in the config file.\nPlease add the FFMPEG_EXECUTABLES_PATH in the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "MODEL_PATH NOT SET", MessageBoxButtons.OK);
-                    return false;
-                }
-                if ((string.IsNullOrWhiteSpace(appConfig.MODEL_PATH) || !File.Exists(appConfig.MODEL_PATH)))
-                {
-                    MessageBox.Show($"The MODEL_PATH was not set in the config file.\nPlease add the MODEL_PATH in the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "MODEL_PATH NOT SET", MessageBoxButtons.OK);
-                    return false;
-                }
-                if ((string.IsNullOrWhiteSpace(appConfig.PYTHON_DLL_PATH) || !File.Exists(appConfig.PYTHON_DLL_PATH)))
-                {
-                    MessageBox.Show($"The PYTHON_DLL_PATH was not set in the config file.\nPlease add the PYTHON_DLL_PATH in the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "PYTHON_DLL_PATH NOT SET", MessageBoxButtons.OK);
-                    return false;
-                }
-
-                Environment.SetEnvironmentVariable("FFMPEG_EXECUTABLES_PATH", appConfig.FFMPEG_EXECUTABLES_PATH);
-                Environment.SetEnvironmentVariable("PYTHON_DLL_PATH", appConfig.PYTHON_DLL_PATH);
-                Environment.SetEnvironmentVariable("MODEL_PATH", appConfig.MODEL_PATH);
-
-                return true;
-            }
-            catch (Exception)
-            {
-                MessageBox.Show($"The program was not able to open the config file because of bad foramtting.\nPlease fix the config file at {Path.GetDirectoryName(AppConstants.CONFIG_PATH)}", "Config File Invalid Format", MessageBoxButtons.OK);
-                return false;
-            }
-        }
+        
     }
 
     public class AppConfig
@@ -800,6 +784,19 @@ namespace vProfanity
         public double Milliseconds { get; set; }
         public double Seconds { get; set; }
         public double NextSeconds { get; set; }
+    }
+
+
+    struct Segment
+    {
+        public double Start;
+        public double End;
+
+        public Segment(double start, double end)
+        {
+            Start = start;
+            End = end;
+        }
     }
 
 
