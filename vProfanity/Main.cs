@@ -51,6 +51,7 @@ namespace vProfanity
                 Height = tabControl1.Height,
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
+                BackColor = Color.LightGray
             };
             videoListBox.SelectedIndexChanged += videoListBox_SelectedIndexChanged;
             audioListBox.SelectedIndexChanged += audioListBox_SelectedIndexChanged;
@@ -427,10 +428,7 @@ namespace vProfanity
                 analyzeButton.Enabled = false;
             });
 
-            addRegionButton.Invoke((MethodInvoker)delegate
-            {
-                addRegionButton.Enabled = false;
-            });
+
 
             var task1 =  Task.Run(() => scanVideo(currentFileHash));
             var task2 =  Task.Run(() => scanAudio(currentFileHash));
@@ -462,13 +460,10 @@ namespace vProfanity
                 analyzeButton.Enabled = true;
             });
 
-            addRegionButton.Invoke((MethodInvoker)delegate
-            {
-                addRegionButton.Enabled = true;
-            });
+
 
             int profaneCount = wordsOptions.Count(d => d.IsProfane);
-            int sexualCount = frameOptions.Count;
+            int sexualCount = frameOptions.Count(d => d.IsSexual);
             MessageBox.Show($"The scan has finished.\n\nScan results:\nFound sexual frames: {sexualCount}\nFound profane regions: {profaneCount}", "Scan complete", MessageBoxButtons.OK);
 
         }
