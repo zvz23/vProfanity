@@ -211,6 +211,12 @@
     <Compile Include="Services\PerspectiveAPI.cs" />
     <Compile Include="Services\AppDBContext.cs" />
     <Compile Include="Services\VideoExtractor.cs" />
+    <Compile Include="TranscriptAnalyzeResultForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TranscriptAnalyzeResultForm.Designer.cs">
+      <DependentUpon>TranscriptAnalyzeResultForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="vProfanityModel.consumption.cs" />
     <Compile Include="vProfanityModel.training.cs" />
     <EmbeddedResource Include="AddVideoRegionForm.resx">
@@ -231,6 +237,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="TranscriptAnalyzeResultForm.resx">
+      <DependentUpon>TranscriptAnalyzeResultForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="defaultConfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

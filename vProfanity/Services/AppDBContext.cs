@@ -69,7 +69,7 @@ namespace vProfanity.Services
 
 
 
-        public void SaveDetectedSexualTimes(string videoHash, string detectedSexualTimesJson)
+        public void SaveFramesInfos(string videoHash, string framesInfosJson)
         {
             using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
             {
@@ -83,7 +83,7 @@ namespace vProfanity.Services
                         VALUES ($videohash, $detected)
                     ";
                     command.Parameters.AddWithValue("$videohash", videoHash);
-                    command.Parameters.AddWithValue("$detected", detectedSexualTimesJson);
+                    command.Parameters.AddWithValue("$detected", framesInfosJson);
                     command.ExecuteNonQuery();
                 }
                 else
@@ -94,7 +94,7 @@ namespace vProfanity.Services
                     ";
 
                     command.Parameters.AddWithValue("$videohash", videoHash);
-                    command.Parameters.AddWithValue("$detected", detectedSexualTimesJson);
+                    command.Parameters.AddWithValue("$detected", framesInfosJson);
                     command.ExecuteNonQuery();
                 }
 

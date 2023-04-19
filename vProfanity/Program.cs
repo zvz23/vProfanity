@@ -107,4 +107,13 @@ namespace vProfanity
         }
 
     }
+    public class AppConfig
+    {
+
+        public string FFMPEG_EXECUTABLES_PATH { get; set; }
+
+        public string MODEL_PATH { get; set; }
+
+        public string PYTHON_DLL_PATH { get; set; }
+    }
 }

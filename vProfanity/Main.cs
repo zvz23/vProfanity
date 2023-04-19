@@ -26,19 +26,23 @@ namespace vProfanity
     {
 
         private readonly List<WordOption> wordsOptions = new List<WordOption>();
-        private readonly List<SexualOption> sexualOptions = new List<SexualOption>();
+        private readonly List<FrameOption> frameOptions = new List<FrameOption>();
         private string currentFileHash;
         private readonly CheckedListBox audioListBox;
         private readonly CheckedListBox videoListBox;
         public Main()
         {
             InitializeComponent();
+            filterComboBox.Items.Add("None");
+            filterComboBox.Items.Add("Profane");
+
             audioListBox = new CheckedListBox()
             {
                 Width = tabControl1.Width,
                 Height = tabControl1.Height,
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
+                BackColor = Color.LightGray,
             };
 
             videoListBox = new CheckedListBox()
@@ -46,7 +50,7 @@ namespace vProfanity
                 Width = tabControl1.Width,
                 Height = tabControl1.Height,
                 BorderStyle = BorderStyle.None,
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
             };
             videoListBox.SelectedIndexChanged += videoListBox_SelectedIndexChanged;
             audioListBox.SelectedIndexChanged += audioListBox_SelectedIndexChanged;
@@ -93,8 +97,8 @@ namespace vProfanity
 
                 foreach (var option in videoListBox.CheckedItems)
                 {
-                    SexualOption sexualOption = (SexualOption)option;
-                    tempVideoSegments.Add(new Segment { Start = sexualOption.StartTime, End = sexualOption.EndTime });
+                    FrameOption frameOption = (FrameOption)option;
+                    tempVideoSegments.Add(new Segment { Start = frameOption.StartTime, End = frameOption.EndTime });
                 }
                 foreach (var segment in tempVideoSegments)
                 {
@@ -139,26 +143,21 @@ namespace vProfanity
             videoListBox.Items.Clear();
             videoListBox.EndUpdate();
 
-            sexualOptions.Clear();
+            frameOptions.Clear();
             wordsOptions.Clear();
 
             uploadButton.Enabled = true;
             scanButton.Enabled = true;
             censorButton.Enabled = true;
-            exportButton.Enabled = true;
+            extractButton.Enabled = true;
             analyzeButton.Enabled = true;
 
             uploadButton.Text = "Upload";
             scanButton.Text = "Scan";
             censorButton.Text = "Censor";
-            exportButton.Text = "Export";
+            extractButton.Text = "Export";
             analyzeButton.Text = "Analyze Transcript";
 
-            toxicityValueLabel.Text = "N/A";
-            identityAttackValueLabel.Text = "N/A";
-            insultValueLabel.Text = "N/A";
-            profanityValueLabel.Text = "N/A";
-            threatValueLabel.Text = "N/A";
         }
 
 
@@ -218,28 +217,28 @@ namespace vProfanity
 
         }
 
-        public void loadDetectedSexualFromJson(string detectedSexualFrameTimesJson)
+        public void loadFramesInfosFromJson(string framesInfosJson)
         {
-            List<FrameInfo> detectedSexualFrameTimes = JsonConvert.DeserializeObject<List<FrameInfo>>(detectedSexualFrameTimesJson);
-            foreach (var t in detectedSexualFrameTimes) 
+            List<FrameInfo> framesInfos = JsonConvert.DeserializeObject<List<FrameInfo>>(framesInfosJson);
+            videoListBox.BeginUpdate();
+            foreach (var t in framesInfos) 
             {
                 TimeSpan duration = TimeSpan.FromMilliseconds(t.Milliseconds);
-                string durationString = duration.ToString(@"hh\:mm\:ss");
+                string durationString = duration.ToString(@"hh\:mm\:ss\.fff");
 
-                sexualOptions.Add(new SexualOption
+                FrameOption frameOption = new FrameOption()
                 {
                     DurationFormat = durationString,
                     StartTime = t.Seconds,
-                    EndTime = t.NextSeconds
-                });
-            }
+                    EndTime = t.NextSeconds,
+                    IsSexual = t.IsSexual
+                };
+                frameOptions.Add(frameOption);
+                videoListBox.Items.Add(frameOption, frameOption.IsSexual);
 
-            videoListBox.BeginUpdate();
-            foreach (var option in sexualOptions)
-            {
-                videoListBox.Items.Add(option, true);
             }
             videoListBox.EndUpdate();
+
         }
 
         private string censorVideo(string videoFile, Dictionary<string, List<List<double>>> segments, string outputFile) 
@@ -247,7 +246,7 @@ namespace vProfanity
             using (Py.GIL())
             {
                 dynamic censor = Py.Import("censor");
-                dynamic result = censor.censor(videoFile, segments, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER);
+                dynamic result = censor.censor(videoFile, segments, outputFile);
                 return result.ToString();
             }
 
@@ -283,8 +282,10 @@ namespace vProfanity
                 frameInfoList = JsonConvert.DeserializeObject<List<FrameInfo>>(frames_info_json.ToString());
 
             }
-            List<FrameInfo> sexualFrames = new List<FrameInfo>();
-
+            if (frameInfoList == null || frameInfoList.Count == 0)
+            {
+                return;
+            }
             foreach (var frameInfo in frameInfoList)
             {
                 byte[] imageBytes;
@@ -302,22 +303,12 @@ namespace vProfanity
                 
                 var input = new ModelInput() { ImageSource = imageBytes };
                 var result = VProfanityModel.Predict(input);
-                if (result.PredictedLabel != "safe")
-                {
-                    sexualFrames.Add(new FrameInfo
-                    {
-                        Milliseconds = frameInfo.Milliseconds,
-                        Seconds = frameInfo.Seconds,
-                        NextSeconds = frameInfo.NextSeconds
-                    });
-                }
+                frameInfo.IsSexual = result.PredictedLabel != "safe";
+                frameInfo.FilePath = null;
             }
-            if (sexualFrames.Count > 0)
-            {
-                AppDBContext appDBContext = new AppDBContext();
-                string sexualFrameTimesJson = JsonConvert.SerializeObject(sexualFrames);
-                appDBContext.SaveDetectedSexualTimes(videoHash, sexualFrameTimesJson);
-            }
+            AppDBContext appDBContext = new AppDBContext();
+            string framesInfosJson = JsonConvert.SerializeObject(frameInfoList);
+            appDBContext.SaveFramesInfos(videoHash, framesInfosJson);
 
         }
 
@@ -376,7 +367,7 @@ namespace vProfanity
             string detectedSexualTimesJson = appDBContext.GetDetectedSexualTimes(videoHash);
             if (detectedSexualTimesJson != null)
             {
-                loadDetectedSexualFromJson(detectedSexualTimesJson);
+                loadFramesInfosFromJson(detectedSexualTimesJson);
             }
             
         }
@@ -426,10 +417,21 @@ namespace vProfanity
                 censorButton.Enabled = false;
             });
 
-            exportButton.Invoke((MethodInvoker)delegate
+            extractButton.Invoke((MethodInvoker)delegate
             {
-                exportButton.Enabled = false;
+                extractButton.Enabled = false;
             });
+
+            analyzeButton.Invoke((MethodInvoker)delegate
+            {
+                analyzeButton.Enabled = false;
+            });
+
+            addRegionButton.Invoke((MethodInvoker)delegate
+            {
+                addRegionButton.Enabled = false;
+            });
+
             var task1 =  Task.Run(() => scanVideo(currentFileHash));
             var task2 =  Task.Run(() => scanAudio(currentFileHash));
             await Task.WhenAll(task1, task2);
@@ -450,14 +452,23 @@ namespace vProfanity
                 censorButton.Enabled = true;
             });
 
-            exportButton.Invoke((MethodInvoker)delegate
+            extractButton.Invoke((MethodInvoker)delegate
             {
-                exportButton.Enabled = true;
+                extractButton.Enabled = true;
             });
 
+            analyzeButton.Invoke((MethodInvoker)delegate
+            {
+                analyzeButton.Enabled = true;
+            });
+
+            addRegionButton.Invoke((MethodInvoker)delegate
+            {
+                addRegionButton.Enabled = true;
+            });
 
             int profaneCount = wordsOptions.Count(d => d.IsProfane);
-            int sexualCount = sexualOptions.Count;
+            int sexualCount = frameOptions.Count;
             MessageBox.Show($"The scan has finished.\n\nScan results:\nFound sexual frames: {sexualCount}\nFound profane regions: {profaneCount}", "Scan complete", MessageBoxButtons.OK);
 
         }
@@ -485,32 +496,26 @@ namespace vProfanity
             {
                 stringBuilder.Append($" {t.text}");
             }
-            PerspectiveAPI perspectiveAPI = new PerspectiveAPI();
-            ScoreResponse scoreResponse = await perspectiveAPI.AnaylizeText(stringBuilder.ToString());
-            string toxicityStr = scoreResponse.attributeScores.TOXICITY.summaryScore.value.ToString();
-            string identityAttackStr = scoreResponse.attributeScores.IDENTITY_ATTACK.summaryScore.value.ToString();
-            string insultStr = scoreResponse.attributeScores.INSULT.summaryScore.value.ToString();
-            string profanityStr = scoreResponse.attributeScores.PROFANITY.summaryScore.value.ToString();
-            string threatStr = scoreResponse.attributeScores.THREAT.summaryScore.value.ToString();
+            using (TranscriptAnalyzeResultForm form = new TranscriptAnalyzeResultForm())
+            {
+                form.Transcript = stringBuilder;
+                form.ShowDialog(this);
+            }
 
-            toxicityValueLabel.Text = $"{toxicityStr[2]} of out 10 people";
-            identityAttackValueLabel.Text = $"{identityAttackStr[2]} of out 10 people";
-            insultValueLabel.Text = $"{insultStr[2]} of out 10 people";
-            profanityValueLabel.Text = $"{profanityStr[2]} of out 10 people";
-            threatValueLabel.Text = $"{threatStr[2]} of out 10 people";
+
 
             analyzeButton.Text = "Analyze Transcript";
             analyzeButton.Enabled = true;
         }
 
-        private void searchBox_TextChanged(object sender, EventArgs e)
+        private void searchTextBox_TextChanged(object sender, EventArgs e)
         {
             audioListBox.ItemCheck -= audioListBox_ItemCheck;
             audioListBox.BeginUpdate();
             audioListBox.Items.Clear();
-            if (!string.IsNullOrWhiteSpace(searchBox.Text))
+            if (!string.IsNullOrWhiteSpace(searchTextBox.Text))
             {
-                WordOption[] searchResult = wordsOptions.Where(w => w.Word.ToLower().Contains(searchBox.Text.ToLower())).ToArray();
+                WordOption[] searchResult = wordsOptions.Where(w => w.Word.ToLower().Contains(searchTextBox.Text.ToLower())).ToArray();
                 foreach (var result in searchResult)
                 {
                     audioListBox.Items.Add(result, result.IsProfane);
@@ -526,7 +531,7 @@ namespace vProfanity
 
         }
 
-        private void exportButton_Click(object sender, EventArgs e)
+        private void extractButton_Click(object sender, EventArgs e)
         {
             if (audioListBox.SelectedItem == null)
             {
@@ -545,31 +550,64 @@ namespace vProfanity
 
         private void filterComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            audioListBox.ItemCheck -= audioListBox_ItemCheck;
-            audioListBox.BeginUpdate();
-            audioListBox.Items.Clear();
-            if (filterComboBox.Text == "Profane")
+            if (tabControl1.SelectedTab.Text == "Audio")
             {
-                WordOption[] searchResult = wordsOptions.Where(w => w.IsProfane).ToArray();
-                foreach (var result in searchResult)
+                audioListBox.ItemCheck -= audioListBox_ItemCheck;
+                audioListBox.BeginUpdate();
+                audioListBox.Items.Clear();
+                if (filterComboBox.Text == "Profane")
                 {
-                    audioListBox.Items.Add(result, true);
+                    WordOption[] searchResult = wordsOptions.Where(w => w.IsProfane).ToArray();
+                    foreach (var result in searchResult)
+                    {
+                        audioListBox.Items.Add(result, true);
+                    }
                 }
-            }
-            else
-            {
-                audioListBox.Items.AddRange(wordsOptions.ToArray());
+                else
+                {
+                    foreach (var option in wordsOptions)
+                    {
+                        audioListBox.Items.Add(option, option.IsProfane);
+                    }
+                }
+                audioListBox.EndUpdate();
+                audioListBox.ItemCheck += audioListBox_ItemCheck;
             }
 
-            audioListBox.EndUpdate();
-            audioListBox.ItemCheck += audioListBox_ItemCheck;
+            else
+            {
+                videoListBox.BeginUpdate();
+                videoListBox.Items.Clear();
+                if (filterComboBox.Text == "Sexual")
+                {
+                    FrameOption[] searchResult = frameOptions.Where(f => f.IsSexual).ToArray();
+                    foreach (var result in searchResult)
+                    {
+                        videoListBox.Items.Add(result, true);
+                    }
+                }
+                else
+                {
+                    foreach (var option in frameOptions)
+                    {
+                        videoListBox.Items.Add(option, option.IsSexual);
+                    }
+                }
+                videoListBox.EndUpdate();
+
+            }
+            
+
+
+
+
         }
 
         private void videoListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (videoListBox.SelectedItem != null)
             {
-                SexualOption sexualOption = (SexualOption)videoListBox.SelectedItem;
+                FrameOption sexualOption = (FrameOption)videoListBox.SelectedItem;
                 axWindowsMediaPlayer1.Ctlcontrols.currentPosition = sexualOption.StartTime;
                 axWindowsMediaPlayer1.Ctlcontrols.play();
             }
@@ -627,9 +665,9 @@ namespace vProfanity
 
             for(int i = start; i <= end; i++)
             {
-                videoListBox.Items.Add(new SexualOption
+                videoListBox.Items.Add(new FrameOption
                 {
-                    DurationFormat = TimeSpan.FromSeconds(Convert.ToDouble(i)).ToString(@"hh\:mm\:ss"),
+                    DurationFormat = TimeSpan.FromSeconds(Convert.ToDouble(i)).ToString(@"hh\:mm\:ss\.fff"),
                     StartTime = TimeSpan.FromSeconds(i).TotalSeconds,
                     EndTime = TimeSpan.FromSeconds(i).Add(TimeSpan.FromSeconds(1)).TotalSeconds
 
@@ -648,8 +686,8 @@ namespace vProfanity
             videoListBox.BeginUpdate();
             TimeSpan secondTs = TimeSpan.FromSeconds(second);
             TimeSpan nextSecondTs = secondTs.Add(TimeSpan.FromSeconds(1));
-            string secondString = secondTs.ToString(@"hh\:mm\:ss");
-            videoListBox.Items.Add(new SexualOption
+            string secondString = secondTs.ToString(@"hh\:mm\:ss\.fff");
+            videoListBox.Items.Add(new FrameOption
             {
                 DurationFormat = secondString,
                 StartTime = second,
@@ -690,9 +728,9 @@ namespace vProfanity
                 censorButton.Text = "Censoring";
             });
 
-            exportButton.Invoke((MethodInvoker)delegate
+            extractButton.Invoke((MethodInvoker)delegate
             {
-                exportButton.Enabled = false;
+                extractButton.Enabled = false;
             });
 
             string censoredVideoPath = await Task.Run(() => censorVideo(axWindowsMediaPlayer1.URL, segments, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER));
@@ -711,9 +749,9 @@ namespace vProfanity
                 censorButton.Text = "Censor";
             });
 
-            exportButton.Invoke((MethodInvoker)delegate
+            extractButton.Invoke((MethodInvoker)delegate
             {
-                exportButton.Enabled = true;
+                extractButton.Enabled = true;
             });
             MessageBox.Show($"The censored file is saved at {censoredVideoPath}.", "Video Censored Successfully", MessageBoxButtons.OK);
         }
@@ -723,21 +761,25 @@ namespace vProfanity
             PythonEngine.Shutdown();
 
         }
-        
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            filterComboBox.BeginUpdate();
+            filterComboBox.Items.Clear();
+            filterComboBox.Items.Add("None");
+            if (tabControl1.SelectedTab.Text == "Video")
+            {
+                filterComboBox.Items.Add("Sexual");
+            }
+            else
+            {
+                filterComboBox.Items.Add("Profane");
+            }
+            filterComboBox.EndUpdate();
+        }
     }
 
-    public class AppConfig
-    {
-        [DefaultValue("")]
 
-        public string FFMPEG_EXECUTABLES_PATH { get; set; }
-        [DefaultValue("")]
-
-        public string MODEL_PATH { get; set; }
-        [DefaultValue("")]
-
-        public string PYTHON_DLL_PATH { get; set; }
-    }
 
 
     public class WordOption
@@ -755,11 +797,12 @@ namespace vProfanity
     }
 
 
-    public class SexualOption
+    public class FrameOption
     {
         public string DurationFormat { get; set; }
         public double StartTime { get; set; }
         public double EndTime { get; set; }
+        public bool IsSexual { get; set; }
 
 
         public override string ToString()
@@ -784,6 +827,7 @@ namespace vProfanity
         public double Milliseconds { get; set; }
         public double Seconds { get; set; }
         public double NextSeconds { get; set; }
+        public bool IsSexual { get; set; }
     }
 
 
