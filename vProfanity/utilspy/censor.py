@@ -40,17 +40,8 @@ def censor(video_file: str, segments: dict, output_path: str):
     censored_profanity_video = concatenate_videoclips(edited_video_clips)
 
     
-    censored_profanity_video.write_videofile(output_file)
+    censored_profanity_video.write_videofile(output_file, logger=None)
 
 
     return output_file
 
-
-if __name__ == '__main__':
-    video_file = r"D:\Ziegfred\Videos\bullying.mp4"
-    output_file = r"D:\Ziegfred\Videos"
-    segments = {
-        'video': [(2, 3)],
-        'audio': [(0, 7)]
-    }
-    censor(video_file, segments, output_file)

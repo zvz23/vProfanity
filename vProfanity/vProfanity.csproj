@@ -344,9 +344,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="utilspy\censor.py">
+    <None Include="utilspy\censor.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
