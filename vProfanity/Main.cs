@@ -728,6 +728,11 @@ namespace vProfanity
                 extractButton.Enabled = false;
             });
 
+            analyzeButton.Invoke((MethodInvoker)delegate
+            {
+                analyzeButton.Enabled = false;
+            });
+
             string censoredVideoPath = await Task.Run(() => censorVideo(axWindowsMediaPlayer1.URL, segments, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER));
 
             uploadButton.Invoke((MethodInvoker)delegate
@@ -747,6 +752,11 @@ namespace vProfanity
             extractButton.Invoke((MethodInvoker)delegate
             {
                 extractButton.Enabled = true;
+            });
+
+            analyzeButton.Invoke((MethodInvoker)delegate
+            {
+                analyzeButton.Enabled = true;
             });
             MessageBox.Show($"The censored file is saved at {censoredVideoPath}.", "Video Censored Successfully", MessageBoxButtons.OK);
         }
