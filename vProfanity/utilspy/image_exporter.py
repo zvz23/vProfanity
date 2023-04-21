@@ -27,7 +27,7 @@ def export_video_images_by_keyframes(video_file: str, output_dir: str):
     
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     frame_count = 0
-
+    last_milliseconds = 0
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -47,6 +47,8 @@ def export_video_images_by_keyframes(video_file: str, output_dir: str):
                     'Seconds': seconds,
                     'NextSeconds': temp_next_seconds
                 })
+        last_milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
+    keyframes[-1]['NextSeconds'] = last_milliseconds / 1000
     return json.dumps(keyframes)
 
 # def export_video_images_by_keyframes(video_file: str, folder_name: str):
