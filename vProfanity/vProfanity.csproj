@@ -315,9 +315,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="utilspy\calc.py">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="utilspy\constants.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -325,9 +322,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="utilspy\ffmpeg_utils.py">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="utilspy\image_compare.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="utilspy\image_exporter.py">
