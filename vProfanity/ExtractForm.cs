@@ -23,25 +23,7 @@ namespace vProfanity
             InitializeComponent();
         }
 
-        private void selectedFolderButton_Click(object sender, EventArgs e)
-        {
-            using (FolderBrowserDialog openFileDialog = new FolderBrowserDialog())
-            {
-
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    if(!Directory.Exists(openFileDialog.SelectedPath))
-                    {
-                        MessageBox.Show("The directory selected does not exist");
-                        return;
-                    }
-                    outputFolderLabel.Text = openFileDialog.SelectedPath;
-
-                    
-                }
-            }
-        }
+        
 
         private void ExtractForm_Load(object sender, EventArgs e)
         {
@@ -55,11 +37,6 @@ namespace vProfanity
         private async void extractButton_Click(object sender, EventArgs e)
         {
             var videoExtractor = new VideoExtractor();
-            if (string.IsNullOrEmpty(outputFolderLabel.Text))
-            {
-                MessageBox.Show("Please select a folder");
-                return;
-            }
 
             if (string.IsNullOrWhiteSpace(fileNameTextBox.Text))
             {
@@ -73,7 +50,7 @@ namespace vProfanity
                 return;
             }
             string fileName = $"{fileNameTextBox.Text}.{fileTypeComboBox.Text}";
-            string filePath = Path.Combine(outputFolderLabel.Text, fileName);
+            string filePath = Path.Combine(AppConstants.CENSORED_VIDEO_OUTPUT_FOLER, fileName);
             if (File.Exists(filePath))
             {
                 MessageBox.Show($"The file {fileName} already exists");
