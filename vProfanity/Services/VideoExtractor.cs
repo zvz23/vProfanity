@@ -13,7 +13,7 @@ namespace vProfanity.Services
     {
         public VideoExtractor() 
         {
-            FFmpeg.SetExecutablesPath(AppConstants.FFMPEG_EXE);
+            FFmpeg.SetExecutablesPath(Environment.GetEnvironmentVariable("FFMPEG_EXECUTABLES_PATH"));
         }
 
         public async Task<string> Split(string inputFile, string outputFile, TimeSpan start, TimeSpan end)
