@@ -49,71 +49,8 @@ def export_video_images_by_keyframes(video_file: str, output_dir: str):
                 })
         last_milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
     keyframes[-1]['NextSeconds'] = last_milliseconds / 1000
+    cap.release()
     return json.dumps(keyframes)
 
-# def export_video_images_by_keyframes(video_file: str, folder_name: str):
-#     # Set the path to the input video file
-#     # Set the path to the output directory where the extracted frames will be saved
-#     temp_dir = tempfile.gettempdir()
-#     output_dir = os.path.join(temp_dir, folder_name)
-
-#     # # Create the output directory if it doesn't already exist
-#     if os.path.exists(output_dir):
-#         shutil.rmtree(output_dir)
-
-#     os.mkdir(output_dir)
-
-#     if not os.path.exists(output_dir):
-#         os.makedirs(output_dir)
-
-#     # Create a VideoCapture object to read the input video file
-#     cap = cv2.VideoCapture(video_file)
-#     keyframes = []
-#     # Get the frame rate of the video
-#     prev_frame = None
-#     while True:
-#         # Read the current frame
-#         ret, frame = cap.read()
-
-#         # Check if the frame was read successfully
-#         if not ret:
-#             break
-#         current_milli = cap.get(cv2.CAP_PROP_POS_MSEC)
-#         current_milli_str = str(int(current_milli))
-#         file_path = os.path.join(output_dir, f'{str(current_milli_str)}.jpg')
-#         if prev_frame is None:
-#             cv2.imwrite(file_path, frame)
-#             keyframes.append({
-#                 'FilePath': file_path,
-#                 'Millisecond': current_milli
-#             })
-#         else:
-#             is_similar = is_frame_similar(frame, prev_frame['frame'])
-#             if is_similar:
-#                 if current_milli <= prev_frame['next_second_milli']:
-#                     continue
-#                 cv2.imwrite(os.path.join(output_dir, f'{str(current_milli_str)}.jpg'), frame)
-#                 keyframes.append({
-#                 'FilePath': file_path,
-#                 'Millisecond': current_milli
-#                 })
-#             else:
-#                 cv2.imwrite(os.path.join(output_dir, f'{str(current_milli_str)}.jpg'), frame)
-#                 keyframes.append({
-#                 'FilePath': file_path,
-#                 'Millisecond': current_milli
-#             })
-
-
-#         prev_frame = {
-#             'frame': frame,
-#             'milli': current_milli,
-#             'next_second_milli': next_second(current_milli)[1]
-#         }
-
-
-#     cap.release()
-#     cv2.destroyAllWindows()
-#     return output_dir
 
 

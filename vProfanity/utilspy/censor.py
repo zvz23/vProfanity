@@ -42,6 +42,7 @@ def censor(video_file: str, segments: dict, output_path: str):
     
     censored_profanity_video.write_videofile(output_file, logger=None, threads=8)
 
+    source_video.close()
 
     return output_file
 
