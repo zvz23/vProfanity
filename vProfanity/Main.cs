@@ -19,6 +19,7 @@ using Google.Protobuf.WellKnownTypes;
 using System.ComponentModel;
 using System.CodeDom;
 using Xabe.FFmpeg;
+using System.Xml.Schema;
 
 namespace vProfanity
 {
@@ -60,6 +61,8 @@ namespace vProfanity
             tabControl1.TabPages[0].Controls.Add(audioListBox);
             tabControl1.TabPages[1].Text = "Video";
             tabControl1.TabPages[1].Controls.Add(videoListBox);
+
+            filterComboBox.SelectedIndex = 0;
 
         }
 
@@ -365,10 +368,10 @@ namespace vProfanity
 
             }
 
-            string detectedSexualTimesJson = appDBContext.GetDetectedSexualTimes(videoHash);
-            if (detectedSexualTimesJson != null)
+            string keyFramesJson = appDBContext.GetKeyFrames(videoHash);
+            if (keyFramesJson != null)
             {
-                loadFramesInfosFromJson(detectedSexualTimesJson);
+                loadFramesInfosFromJson(keyFramesJson);
             }
             
         }
@@ -460,11 +463,24 @@ namespace vProfanity
                 analyzeButton.Enabled = true;
             });
 
+            HashSet<Segment> audioSegments = new HashSet<Segment>();
+            wordsOptions.ForEach(w =>
+            {
+                audioSegments.Add(new Segment
+                {
+                    Start = w.StartTime,
+                    End = w.EndTime
+                });
+            });
 
+            int audioSegmentsCount = audioSegments.Count;
+            int keyFramesCount = frameOptions.Count;
 
             int profaneCount = wordsOptions.Count(d => d.IsProfane);
             int sexualCount = frameOptions.Count(d => d.IsSexual);
-            MessageBox.Show($"The scan has finished.\n\nScan results:\nFound sexual frames: {sexualCount}\nFound profane regions: {profaneCount}", "Scan complete", MessageBoxButtons.OK);
+            string scanMessage = $"The scan has finished.\n\nScan results:\nFound profane regions: {profaneCount}\nFound sexual keyframes: {sexualCount}";
+
+            MessageBox.Show(scanMessage, "Scan complete", MessageBoxButtons.OK);
 
         }
 
@@ -602,8 +618,8 @@ namespace vProfanity
         {
             if (videoListBox.SelectedItem != null)
             {
-                FrameOption sexualOption = (FrameOption)videoListBox.SelectedItem;
-                axWindowsMediaPlayer1.Ctlcontrols.currentPosition = sexualOption.StartTime;
+                FrameOption frameOption = (FrameOption)videoListBox.SelectedItem;
+                axWindowsMediaPlayer1.Ctlcontrols.currentPosition = frameOption.StartTime;
                 axWindowsMediaPlayer1.Ctlcontrols.play();
             }
         }
@@ -780,6 +796,7 @@ namespace vProfanity
             {
                 filterComboBox.Items.Add("Profane");
             }
+            filterComboBox.SelectedIndex = 0;
             filterComboBox.EndUpdate();
         }
     }
@@ -847,6 +864,8 @@ namespace vProfanity
             End = end;
         }
     }
+
+
 
 
 }
