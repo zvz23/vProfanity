@@ -29,8 +29,6 @@ def speech_to_text(input_file: str, temp_dir: str):
                     'end': region[1] / 1000.0,
                     'text': result[0]['transcript']
                 })
-    if len(transcript) > 0:
-        return json.dumps(transcript)
-    else:
-        return None
+    return json.dumps(transcript)
+
 
