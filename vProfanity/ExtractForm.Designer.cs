@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.outputFolderLabel = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.selectedWordLabel = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -42,106 +41,109 @@
             this.fileTypeComboBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
-            // outputFolderLabel
-            // 
-            this.outputFolderLabel.AutoSize = true;
-            this.outputFolderLabel.Location = new System.Drawing.Point(160, 99);
-            this.outputFolderLabel.Name = "outputFolderLabel";
-            this.outputFolderLabel.Size = new System.Drawing.Size(0, 13);
-            this.outputFolderLabel.TabIndex = 2;
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(26, 31);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(78, 13);
+            this.label2.Size = new System.Drawing.Size(114, 20);
             this.label2.TabIndex = 4;
             this.label2.Text = "Selected word:";
             // 
             // selectedWordLabel
             // 
             this.selectedWordLabel.AutoSize = true;
-            this.selectedWordLabel.Location = new System.Drawing.Point(111, 31);
+            this.selectedWordLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.selectedWordLabel.Location = new System.Drawing.Point(146, 31);
             this.selectedWordLabel.Name = "selectedWordLabel";
-            this.selectedWordLabel.Size = new System.Drawing.Size(0, 13);
+            this.selectedWordLabel.Size = new System.Drawing.Size(0, 20);
             this.selectedWordLabel.TabIndex = 5;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(26, 55);
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(26, 66);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(32, 13);
+            this.label3.Size = new System.Drawing.Size(48, 20);
             this.label3.TabIndex = 6;
             this.label3.Text = "Start:";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(26, 75);
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(183, 66);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(29, 13);
+            this.label4.Size = new System.Drawing.Size(42, 20);
             this.label4.TabIndex = 7;
             this.label4.Text = "End:";
             // 
             // startLabel
             // 
             this.startLabel.AutoSize = true;
-            this.startLabel.Location = new System.Drawing.Point(65, 55);
+            this.startLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.startLabel.Location = new System.Drawing.Point(80, 66);
             this.startLabel.Name = "startLabel";
-            this.startLabel.Size = new System.Drawing.Size(0, 13);
+            this.startLabel.Size = new System.Drawing.Size(0, 20);
             this.startLabel.TabIndex = 8;
             // 
             // endLabel
             // 
             this.endLabel.AutoSize = true;
-            this.endLabel.Location = new System.Drawing.Point(65, 75);
+            this.endLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.endLabel.Location = new System.Drawing.Point(231, 66);
             this.endLabel.Name = "endLabel";
-            this.endLabel.Size = new System.Drawing.Size(0, 13);
+            this.endLabel.Size = new System.Drawing.Size(0, 20);
             this.endLabel.TabIndex = 9;
             // 
             // extractButton
             // 
-            this.extractButton.Location = new System.Drawing.Point(26, 134);
+            this.extractButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.extractButton.Location = new System.Drawing.Point(316, 145);
             this.extractButton.Name = "extractButton";
-            this.extractButton.Size = new System.Drawing.Size(75, 23);
+            this.extractButton.Size = new System.Drawing.Size(114, 36);
             this.extractButton.TabIndex = 10;
-            this.extractButton.Text = "Extract";
+            this.extractButton.Text = " Extract";
             this.extractButton.UseVisualStyleBackColor = true;
             this.extractButton.Click += new System.EventHandler(this.extractButton_Click);
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(29, 100);
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.Location = new System.Drawing.Point(26, 108);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(55, 13);
+            this.label5.Size = new System.Drawing.Size(82, 20);
             this.label5.TabIndex = 11;
             this.label5.Text = "File name:";
             // 
             // fileNameTextBox
             // 
-            this.fileNameTextBox.Location = new System.Drawing.Point(90, 97);
+            this.fileNameTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fileNameTextBox.Location = new System.Drawing.Point(114, 99);
             this.fileNameTextBox.Name = "fileNameTextBox";
-            this.fileNameTextBox.Size = new System.Drawing.Size(100, 20);
+            this.fileNameTextBox.Size = new System.Drawing.Size(100, 29);
             this.fileNameTextBox.TabIndex = 12;
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(206, 100);
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(231, 108);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(49, 13);
+            this.label6.Size = new System.Drawing.Size(72, 20);
             this.label6.TabIndex = 13;
             this.label6.Text = "File type:";
             // 
             // fileTypeComboBox
             // 
+            this.fileTypeComboBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.fileTypeComboBox.FormattingEnabled = true;
-            this.fileTypeComboBox.Location = new System.Drawing.Point(261, 96);
+            this.fileTypeComboBox.Location = new System.Drawing.Point(309, 96);
             this.fileTypeComboBox.Name = "fileTypeComboBox";
-            this.fileTypeComboBox.Size = new System.Drawing.Size(121, 21);
+            this.fileTypeComboBox.Size = new System.Drawing.Size(121, 32);
             this.fileTypeComboBox.TabIndex = 14;
             this.fileTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.fileTypeComboBox_SelectedIndexChanged);
             // 
@@ -149,7 +151,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(435, 198);
+            this.ClientSize = new System.Drawing.Size(462, 206);
             this.Controls.Add(this.fileTypeComboBox);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.fileNameTextBox);
@@ -161,7 +163,6 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.selectedWordLabel);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.outputFolderLabel);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ExtractForm";
@@ -174,7 +175,6 @@
         }
 
         #endregion
-        private System.Windows.Forms.Label outputFolderLabel;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label selectedWordLabel;
         private System.Windows.Forms.Label label3;
