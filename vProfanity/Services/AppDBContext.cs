@@ -79,7 +79,7 @@ namespace vProfanity.Services
                 {
                     command.CommandText =
                     @"
-                        INSERT INTO filehistory(FILE_HASH, DETECTED_SEXUAL_BY_FRAMES)
+                        INSERT INTO filehistory(FILE_HASH, KEYFRAMES)
                         VALUES ($videohash, $detected)
                     ";
                     command.Parameters.AddWithValue("$videohash", videoHash);
@@ -90,7 +90,7 @@ namespace vProfanity.Services
                 {
                     command.CommandText =
                     @"
-                        UPDATE filehistory SET DETECTED_SEXUAL_BY_FRAMES=$detected WHERE FILE_HASH=$videohash
+                        UPDATE filehistory SET KEYFRAMES=$detected WHERE FILE_HASH=$videohash
                     ";
 
                     command.Parameters.AddWithValue("$videohash", videoHash);
@@ -129,13 +129,13 @@ namespace vProfanity.Services
             return transcript;
         }
 
-        public string GetDetectedSexualTimes(string videoHash)
+        public string GetKeyFrames(string videoHash)
         {
             using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT DETECTED_SEXUAL_BY_FRAMES FROM filehistory WHERE FILE_HASH=$videohash";
+                command.CommandText = @"SELECT KEYFRAMES FROM filehistory WHERE FILE_HASH=$videohash";
                 command.Parameters.AddWithValue("$videohash", videoHash);
                 object result = command.ExecuteScalar();
                 if (result != null && result != DBNull.Value)
