@@ -5,7 +5,6 @@ import os
 def censor(video_file: str, segments: dict, output_path: str):
     output_file = os.path.join(output_path, f'{str(uuid4())}.mp4')
     source_video = VideoFileClip(video_file)
-
     video_segments = segments['video']
     audio_segments = segments['audio']
 
@@ -14,8 +13,6 @@ def censor(video_file: str, segments: dict, output_path: str):
 
     for segment in video_segments:
         start_time, end_time = segment
-        print(start_time)
-        print(end_time)
         edited_video_clips.append(source_video.subclip(last_video_end_time, start_time))
         black_clip = ColorClip(size=source_video.size, color=(0, 0, 0), duration=end_time - start_time)
         edited_video_clips.append(black_clip)
