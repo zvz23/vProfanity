@@ -2,10 +2,6 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using System;
-using System.Linq;
-using System.IO;
-using System.Collections.Generic;
-using Tensorflow.Operations.Initializers;
 
 namespace vProfanity
 {

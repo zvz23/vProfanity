@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace vProfanity.Services
 {
@@ -13,7 +8,7 @@ namespace vProfanity.Services
     {
         public static string GetFileHash(string filePath)
         {
-            using (SHA256 sha256 = SHA256.Create()) 
+            using (SHA256 sha256 = SHA256.Create())
             {
                 using (FileStream fileStream = File.OpenRead(filePath))
                 {

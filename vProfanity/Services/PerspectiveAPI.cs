@@ -1,12 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace vProfanity.Services
 {
@@ -38,17 +36,17 @@ namespace vProfanity.Services
                     {
                         summaryScore = new SummaryScore()
                     },
-                    INSULT = new Attribute() 
-                    { 
-                        summaryScore = new SummaryScore() 
+                    INSULT = new Attribute()
+                    {
+                        summaryScore = new SummaryScore()
                     },
-                    PROFANITY = new Attribute() 
-                    { 
-                        summaryScore = new SummaryScore() 
+                    PROFANITY = new Attribute()
+                    {
+                        summaryScore = new SummaryScore()
                     },
-                    THREAT = new Attribute() 
-                    { 
-                        summaryScore = new SummaryScore() 
+                    THREAT = new Attribute()
+                    {
+                        summaryScore = new SummaryScore()
                     }
                 }
             };
@@ -142,6 +140,6 @@ namespace vProfanity.Services
     public class ScoreResponse
     {
         public AttirubteScores attributeScores { get; set; }
-    
+
     }
 }

@@ -1,3 +1,4 @@
+from tracemalloc import start
 from moviepy.editor import *
 from uuid import uuid4
 import os
@@ -11,14 +12,22 @@ def censor(video_file: str, segments: dict, output_path: str):
     edited_video_clips = []
     last_video_end_time = 0
 
+    ended = False
+
     for segment in video_segments:
         start_time, end_time = segment
         edited_video_clips.append(source_video.subclip(last_video_end_time, start_time))
-        black_clip = ColorClip(size=source_video.size, color=(0, 0, 0), duration=end_time - start_time)
-        edited_video_clips.append(black_clip)
-        last_video_end_time = end_time
+        if end_time < source_video.duration:
+            black_clip = ColorClip(size=source_video.size, color=(0, 0, 0), duration=end_time - start_time)
+            edited_video_clips.append(black_clip)
+            last_video_end_time = end_time
+        else:
+            black_clip = ColorClip(size=source_video.size, color=(0, 0, 0), duration=source_video.duration - start_time)
+            edited_video_clips.append(black_clip)
+            ended = True
 
-    edited_video_clips.append(source_video.subclip(last_video_end_time))
+    if not ended:
+        edited_video_clips.append(source_video.subclip(last_video_end_time))
 
     censored_sexual_video = concatenate_videoclips(edited_video_clips)
 

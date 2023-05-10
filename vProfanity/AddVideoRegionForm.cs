@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace vProfanity
@@ -88,7 +81,7 @@ namespace vProfanity
                     return;
                 }
 
-                if (!(tempEnd != tempStart && tempEnd > tempStart && tempEnd <= VideodDuration)) 
+                if (!(tempEnd != tempStart && tempEnd > tempStart && tempEnd <= VideodDuration))
                 {
                     MessageBox.Show("Please enter a valid end range of the video.", "Invalid End Range Entered", MessageBoxButtons.OK);
                     return;

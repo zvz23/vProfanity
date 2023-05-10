@@ -3,8 +3,7 @@ from speech_recognizer import get_speech_regions
 import speech_recognition as sr
 import json
 
-def speech_to_text(input_file: str, temp_dir: str):
-    wav_file = get_wav(input_file, temp_dir)
+def speech_to_text(wav_file: str ,temp_dir: str):
     regions = get_speech_regions(wav_file)
     r = sr.Recognizer()
     transcript = []

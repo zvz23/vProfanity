@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SQLite;
-using Tensorflow.Util;
-using System.Windows.Forms;
+using System.IO;
 
 namespace vProfanity.Services
 {
     public class AppDBContext
     {
 
-        public AppDBContext() 
+        public AppDBContext()
         {
-        
+
         }
 
         public bool HasRecord(string videoHash)
@@ -37,7 +32,7 @@ namespace vProfanity.Services
 
         public void SaveTranscript(string videoHash, string transcript)
         {
-            
+
             using (var connection = new SQLiteConnection($"Data Source={DbConstants.ABS_DB_PATH}"))
             {
                 connection.Open();
@@ -104,7 +99,7 @@ namespace vProfanity.Services
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                
+
             }
         }
 
@@ -141,13 +136,13 @@ namespace vProfanity.Services
                 if (result != null && result != DBNull.Value)
                 {
                     return Convert.ToString(result);
-                    
+
                 }
                 return null;
             }
         }
 
-        
+
 
         public bool IsProfane(string word)
         {
@@ -159,9 +154,9 @@ namespace vProfanity.Services
                 command.Parameters.AddWithValue("$word", word);
                 using (var reader = command.ExecuteReader())
                 {
-                    if (reader.Read()) 
-                    { 
-                        return true; 
+                    if (reader.Read())
+                    {
+                        return true;
                     }
                     else
                     {
@@ -206,7 +201,7 @@ namespace vProfanity.Services
                     command.Parameters.AddWithValue("$word", words);
                     command.ExecuteNonQuery();
                 }
-                
+
 
             }
         }
@@ -214,7 +209,7 @@ namespace vProfanity.Services
         public static void Initialize_Database()
         {
             string defaultDatabasePath = Path.Combine(Environment.CurrentDirectory, "defaultvProfanity.db");
-            
+
             if (!File.Exists(DbConstants.ABS_DB_PATH))
             {
                 File.Copy(defaultDatabasePath, DbConstants.ABS_DB_PATH);
@@ -225,5 +220,5 @@ namespace vProfanity.Services
 
     }
 
-    
+
 }

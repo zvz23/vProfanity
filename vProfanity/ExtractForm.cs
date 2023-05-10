@@ -1,15 +1,8 @@
-﻿using AxWMPLib;
-using vProfanity.Services;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using vProfanity.Services;
 using Xabe.FFmpeg;
 
 namespace vProfanity
@@ -23,7 +16,7 @@ namespace vProfanity
             InitializeComponent();
         }
 
-        
+
 
         private void ExtractForm_Load(object sender, EventArgs e)
         {
@@ -36,7 +29,6 @@ namespace vProfanity
 
         private async void extractButton_Click(object sender, EventArgs e)
         {
-            var videoExtractor = new VideoExtractor();
 
             if (string.IsNullOrWhiteSpace(fileNameTextBox.Text))
             {
@@ -56,10 +48,17 @@ namespace vProfanity
                 MessageBox.Show($"The file {fileName} already exists");
                 return;
             }
+            FFmpegUtils fFmpegUtils = new FFmpegUtils(AppConstants.CENSORED_VIDEO_OUTPUT_FOLER);
 
             extractButton.Text = "Extracting";
             extractButton.Enabled = false;
-            await videoExtractor.Split(VideoURL, filePath, TimeSpan.FromSeconds(SelectedItem.StartTime), TimeSpan.FromSeconds(SelectedItem.EndTime));
+            LoadingForm loadingForm = new LoadingForm()
+            {
+                LoadingMessage = "Extracting video clip... Please wait"
+            };
+            loadingForm.Show(this);
+            await fFmpegUtils.Split(VideoURL, fileName, TimeSpan.FromSeconds(SelectedItem.StartTime), TimeSpan.FromSeconds(SelectedItem.EndTime));
+            loadingForm.Close();
             MessageBox.Show($"The file is saved to {filePath}", "Extraction Successful", MessageBoxButtons.OK);
             this.Close();
         }

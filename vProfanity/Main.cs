@@ -1,25 +1,19 @@
-﻿using vProfanity.Services;
+﻿using CsharpOpenCVProject;
+using Emgu.CV;
+using Emgu.CV.Structure;
+using Newtonsoft.Json;
+using Python.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
-using Newtonsoft.Json;
-using System.Net;
-using System.Drawing;
-using static vProfanity.VProfanityModel;
-using Microsoft.ML;
-using Python.Runtime;
 using System.Threading.Tasks;
-using System.Net.Http;
-using Google.Protobuf.WellKnownTypes;
-using System.ComponentModel;
-using System.CodeDom;
-using Xabe.FFmpeg;
-using System.Xml.Schema;
+using System.Windows.Forms;
+using vProfanity.Services;
+using static vProfanity.VProfanityModel;
 
 namespace vProfanity
 {
@@ -70,7 +64,7 @@ namespace vProfanity
         {
             audioListBox.ItemCheck -= audioListBox_ItemCheck;
             WordOption selectedWord = (WordOption)audioListBox.SelectedItem;
-            
+
             for (int i = 0; i < audioListBox.Items.Count; i++)
             {
                 if (!ReferenceEquals(audioListBox.SelectedItem, audioListBox.Items[i]))
@@ -83,7 +77,7 @@ namespace vProfanity
                 }
 
             }
-            
+
             audioListBox.ItemCheck += audioListBox_ItemCheck;
 
 
@@ -98,16 +92,12 @@ namespace vProfanity
             if (videoListBox.CheckedItems.Count > 0)
             {
                 HashSet<Segment> tempVideoSegments = new HashSet<Segment>();
-
                 foreach (var option in videoListBox.CheckedItems)
                 {
                     FrameOption frameOption = (FrameOption)option;
                     tempVideoSegments.Add(new Segment { Start = frameOption.StartTime, End = frameOption.EndTime });
                 }
-                foreach (var segment in tempVideoSegments)
-                {
-                    segmentsContainer["video"].Add(new List<double> { segment.Start, segment.End });
-                }
+                segmentsContainer["video"] = CleanSegments(tempVideoSegments.ToList()).Select(s => new List<double>() { s.Start, s.End }).ToList();
             }
 
             if (audioListBox.CheckedItems.Count > 0)
@@ -119,10 +109,7 @@ namespace vProfanity
                     WordOption wordOption = (WordOption)option;
                     tempAudioSegments.Add(new Segment { Start = wordOption.StartTime, End = wordOption.EndTime });
                 }
-                foreach (var segment in tempAudioSegments)
-                {
-                    segmentsContainer["audio"].Add(new List<double> { segment.Start, segment.End });
-                }
+                segmentsContainer["audio"] = CleanSegments(tempAudioSegments.ToList()).Select(s => new List<double>() { s.Start, s.End }).ToList();
 
             }
 
@@ -183,6 +170,7 @@ namespace vProfanity
                     axWindowsMediaPlayer1.URL = openFileDialog.FileName;
                     currentFileHash = FileHashGenerator.GetFileHash(axWindowsMediaPlayer1.URL);
                     _setDefaultControlState();
+
                 }
             }
             uploadButton.Invoke((MethodInvoker)delegate
@@ -199,7 +187,7 @@ namespace vProfanity
             foreach (var t in transcript)
             {
                 string[] words = t.text.Split(' ');
-                
+
                 List<WordOption> wordOptions = words.Where(word => !string.IsNullOrWhiteSpace(word)).Select(word => new WordOption
                 {
                     Word = word,
@@ -208,7 +196,7 @@ namespace vProfanity
                     IsProfane = !t.hasProfane ? false : appDBContext.IsProfane(word)
                 }).ToList();
                 wordsOptions.AddRange(wordOptions);
-                   
+
             }
             audioListBox.ItemCheck -= audioListBox_ItemCheck;
             audioListBox.BeginUpdate();
@@ -225,9 +213,9 @@ namespace vProfanity
         {
             List<FrameInfo> framesInfos = JsonConvert.DeserializeObject<List<FrameInfo>>(framesInfosJson);
             videoListBox.BeginUpdate();
-            foreach (var t in framesInfos) 
+            foreach (var t in framesInfos)
             {
-                TimeSpan duration = TimeSpan.FromMilliseconds(t.Milliseconds);
+                TimeSpan duration = TimeSpan.FromSeconds(t.Seconds);
                 string durationString = duration.ToString(@"hh\:mm\:ss\.fff");
 
                 FrameOption frameOption = new FrameOption()
@@ -245,7 +233,7 @@ namespace vProfanity
 
         }
 
-        private string censorVideo(string videoFile, Dictionary<string, List<List<double>>> segments, string outputFile) 
+        private string censorVideo(string videoFile, Dictionary<string, List<List<double>>> segments, string outputFile)
         {
             using (Py.GIL())
             {
@@ -275,56 +263,41 @@ namespace vProfanity
             return resizedImage;
         }
 
-        private void scanVideo(string videoHash)
+        private void scanVideo()
         {
-            List<FrameInfo> frameInfoList = null;
-            using (Py.GIL())
+            FramesGenerator framesGenerator = new FramesGenerator(axWindowsMediaPlayer1.URL);
+            List<FrameInfo> frames = new List<FrameInfo>();
+            foreach (TimedFrame frame in framesGenerator.GetTimedKeyFrames())
             {
-                string videoFramesPath = Path.Combine(AppConstants.ABS_TEMP_FOLDER, videoHash);
-                dynamic image_exporter = Py.Import("image_exporter");
-                dynamic frames_info_json = image_exporter.export_video_images_by_keyframes(axWindowsMediaPlayer1.URL, videoFramesPath);
-                frameInfoList = JsonConvert.DeserializeObject<List<FrameInfo>>(frames_info_json.ToString());
-
-            }
-            if (frameInfoList == null || frameInfoList.Count == 0)
-            {
-                return;
-            }
-            foreach (var frameInfo in frameInfoList)
-            {
-                byte[] imageBytes;
-                using (Image image = Image.FromFile(frameInfo.FilePath))
+                FrameInfo frameInfo = new FrameInfo()
                 {
-                    using (Image resizedImage = ResizeImage(image, 320))
-                    {
-                        using (MemoryStream stream = new MemoryStream())
-                        {
-                            resizedImage.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-                            imageBytes = stream.ToArray();
-                        }
-                    }
-                }
-                
-                var input = new ModelInput() { ImageSource = imageBytes };
-                var result = VProfanityModel.Predict(input);
-                frameInfo.IsSexual = result.PredictedLabel != "safe";
-                frameInfo.FilePath = null;
+                    Seconds = frame.Seconds,
+                    NextSeconds = frame.Seconds + 1
+
+                };
+
+                byte[] frameBytes = ProcessFrame(frame.Frame);
+                ModelInput inputModel = new ModelInput() { ImageSource = frameBytes };
+                frameInfo.IsSexual = VProfanityModel.Predict(inputModel).PredictedLabel != "safe";
+                frames.Add(frameInfo);
             }
+            string framesJson = JsonConvert.SerializeObject(frames);
+
             AppDBContext appDBContext = new AppDBContext();
-            string framesInfosJson = JsonConvert.SerializeObject(frameInfoList);
-            appDBContext.SaveFramesInfos(videoHash, framesInfosJson);
+
+            appDBContext.SaveFramesInfos(currentFileHash, framesJson);
 
         }
 
 
-        private void scanAudio(string videoHash) 
+        private void scanAudio(string wavFile)
         {
-            string tempDirPath = Path.Combine(AppConstants.ABS_TEMP_FOLDER, videoHash);
+            string tempDirPath = Path.Combine(AppConstants.ABS_TEMP_FOLDER, currentFileHash);
             using (Py.GIL())
             {
                 dynamic speechtotext = Py.Import("speechtotext");
-                dynamic speech_to_text_result_json = speechtotext.speech_to_text(axWindowsMediaPlayer1.URL, tempDirPath);
-                if(speech_to_text_result_json == null)
+                dynamic speech_to_text_result_json = speechtotext.speech_to_text(wavFile, tempDirPath);
+                if (speech_to_text_result_json == null)
                 {
                     return;
                 }
@@ -332,7 +305,7 @@ namespace vProfanity
                 List<TranscriptChunk> transcript = JsonConvert.DeserializeObject<List<TranscriptChunk>>(speech_to_text_result_string);
                 markTranscriptProfanity(transcript);
                 var appDBContext = new AppDBContext();
-                appDBContext.SaveTranscript(videoHash, JsonConvert.SerializeObject(transcript));
+                appDBContext.SaveTranscript(currentFileHash, JsonConvert.SerializeObject(transcript));
 
             }
 
@@ -373,7 +346,7 @@ namespace vProfanity
             {
                 loadFramesInfosFromJson(keyFramesJson);
             }
-            
+
         }
 
         private void deleteTempData(string videoHash)
@@ -430,11 +403,17 @@ namespace vProfanity
             {
                 analyzeButton.Enabled = false;
             });
+            LoadingForm loadingForm = new LoadingForm()
+            {
+                LoadingMessage = "Scanning for sexual and profane content...Please wait"
+            };
 
+            loadingForm.Show(this);
+            FFmpegUtils ffmpegUtils = new FFmpegUtils(Path.Combine(AppConstants.ABS_TEMP_FOLDER, currentFileHash));
+            string wavFile = await ffmpegUtils.GetWav(axWindowsMediaPlayer1.URL);
+            var task1 = Task.Run(() => scanVideo());
+            var task2 = Task.Run(() => scanAudio(wavFile));
 
-
-            var task1 =  Task.Run(() => scanVideo(currentFileHash));
-            var task2 =  Task.Run(() => scanAudio(currentFileHash));
             await Task.WhenAll(task1, task2);
 
             await Task.Run(() => deleteTempData(currentFileHash));
@@ -472,15 +451,13 @@ namespace vProfanity
                     End = w.EndTime
                 });
             });
-
+            loadingForm.Close();
             int audioSegmentsCount = audioSegments.Count;
             int keyFramesCount = frameOptions.Count;
-
             int profaneCount = wordsOptions.Count(d => d.IsProfane);
             int sexualCount = frameOptions.Count(d => d.IsSexual);
             string scanMessage = $"The scan has finished.\n\nScan results:\nFound profane regions: {profaneCount}\nFound sexual keyframes: {sexualCount}";
-
-            MessageBox.Show(scanMessage, "Scan complete", MessageBoxButtons.OK);
+            MessageBox.Show(this, scanMessage, "Scan complete", MessageBoxButtons.OK);
 
         }
 
@@ -607,7 +584,7 @@ namespace vProfanity
                 videoListBox.EndUpdate();
 
             }
-            
+
 
 
 
@@ -674,7 +651,7 @@ namespace vProfanity
             int end = Convert.ToInt32(endRangeTs.TotalSeconds);
             videoListBox.BeginUpdate();
 
-            for(int i = start; i <= end; i++)
+            for (int i = start; i <= end; i++)
             {
                 videoListBox.Items.Add(new FrameOption
                 {
@@ -748,7 +725,11 @@ namespace vProfanity
             {
                 analyzeButton.Enabled = false;
             });
-
+            LoadingForm loadingForm = new LoadingForm()
+            {
+                LoadingMessage = "Censoring video... Please wait"
+            };
+            loadingForm.Show(this);
             string censoredVideoPath = await Task.Run(() => censorVideo(axWindowsMediaPlayer1.URL, segments, AppConstants.CENSORED_VIDEO_OUTPUT_FOLER));
 
             uploadButton.Invoke((MethodInvoker)delegate
@@ -774,6 +755,7 @@ namespace vProfanity
             {
                 analyzeButton.Enabled = true;
             });
+            loadingForm.Close();
             MessageBox.Show($"The censored file is saved at {censoredVideoPath}.", "Video Censored Successfully", MessageBoxButtons.OK);
         }
 
@@ -799,9 +781,49 @@ namespace vProfanity
             filterComboBox.SelectedIndex = 0;
             filterComboBox.EndUpdate();
         }
+
+        private byte[] ProcessFrame(Mat mat)
+        {
+            int desiredHeight = 320; // Training images height
+            double aspectRatio = (double)mat.Width / mat.Height;
+            int desiredWidth = (int)(320 * aspectRatio);
+            Mat resizedFrame = new Mat();
+            CvInvoke.Resize(mat, resizedFrame, new Size(desiredWidth, desiredHeight));
+            return resizedFrame.ToImage<Bgr, byte>().ToJpegData();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+            using (LoadingForm form = new LoadingForm())
+            {
+                form.ShowDialog();
+            }
+        }
+
+        private List<Segment> CleanSegments(List<Segment> segments)
+        {
+            // Sort the segments by start time
+            List<Segment> sortedSegments = segments.OrderBy(s => s.Start).ToList();
+
+            // Merge overlapping and adjacent segments
+            List<Segment> cleanedSegments = new List<Segment> { sortedSegments[0] };
+            foreach (Segment segment in sortedSegments.Skip(1))
+            {
+                Segment lastSegment = cleanedSegments.Last();
+                if (segment.Start <= lastSegment.End)
+                {
+                    lastSegment.End = Math.Max(segment.End, lastSegment.End);
+                }
+                else
+                {
+                    cleanedSegments.Add(segment);
+                }
+            }
+
+            return cleanedSegments;
+        }
+
     }
-
-
 
 
     public class WordOption
@@ -845,8 +867,6 @@ namespace vProfanity
 
     public class FrameInfo
     {
-        public string FilePath { get; set; }
-        public double Milliseconds { get; set; }
         public double Seconds { get; set; }
         public double NextSeconds { get; set; }
         public bool IsSexual { get; set; }
