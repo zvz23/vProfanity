@@ -30,10 +30,8 @@ namespace vProfanity
                                       NOT NULL,
     FILE_HASH                 TEXT    NOT NULL
                                       UNIQUE,
-    DETECTED_SEXUAL_BY_FRAMES TEXT,
-    DETECTED_PROFANE_REGIONS  TEXT,
-    DETECTED_SPEECH_REGIONS   TEXT,
-    TRANSCRIPT                TEXT
+    KEYFRAMES TEXT,
+    TRANSCRIPT  TEXT,
 );
 
             ";
