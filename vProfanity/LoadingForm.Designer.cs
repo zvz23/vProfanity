@@ -59,7 +59,7 @@
             this.ClientSize = new System.Drawing.Size(343, 77);
             this.Controls.Add(this.loadingLabel);
             this.Controls.Add(this.pictureBox1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "LoadingForm";
