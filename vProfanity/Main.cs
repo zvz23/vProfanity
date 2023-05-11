@@ -97,7 +97,7 @@ namespace vProfanity
                     FrameOption frameOption = (FrameOption)option;
                     tempVideoSegments.Add(new Segment { Start = frameOption.StartTime, End = frameOption.EndTime });
                 }
-                segmentsContainer["video"] = CleanSegments(tempVideoSegments.ToList()).Select(s => new List<double>() { s.Start, s.End }).ToList();
+                segmentsContainer["video"].AddRange(tempVideoSegments.Select(s => new List<double>() { s.Start, s.End }).ToList());
             }
 
             if (audioListBox.CheckedItems.Count > 0)
@@ -109,7 +109,7 @@ namespace vProfanity
                     WordOption wordOption = (WordOption)option;
                     tempAudioSegments.Add(new Segment { Start = wordOption.StartTime, End = wordOption.EndTime });
                 }
-                segmentsContainer["audio"] = CleanSegments(tempAudioSegments.ToList()).Select(s => new List<double>() { s.Start, s.End }).ToList();
+                segmentsContainer["audio"].AddRange(tempAudioSegments.Select(s => new List<double>() { s.Start, s.End }).ToList());
 
             }
 
@@ -267,20 +267,23 @@ namespace vProfanity
         {
             FramesGenerator framesGenerator = new FramesGenerator(axWindowsMediaPlayer1.URL);
             List<FrameInfo> frames = new List<FrameInfo>();
+            FrameInfo prevFrame = null;
             foreach (TimedFrame frame in framesGenerator.GetTimedKeyFrames())
             {
-                FrameInfo frameInfo = new FrameInfo()
+                FrameInfo frameInfo = new FrameInfo();
+
+                frameInfo.Seconds = frame.Milliseconds / 1000.0;
+                if (prevFrame != null)
                 {
-                    Seconds = frame.Seconds,
-                    NextSeconds = frame.Seconds + 1
-
-                };
-
+                    prevFrame.NextSeconds = frameInfo.Seconds;
+                }
+                prevFrame = frameInfo;
                 byte[] frameBytes = ProcessFrame(frame.Frame);
                 ModelInput inputModel = new ModelInput() { ImageSource = frameBytes };
                 frameInfo.IsSexual = VProfanityModel.Predict(inputModel).PredictedLabel != "safe";
                 frames.Add(frameInfo);
             }
+            prevFrame.NextSeconds = prevFrame.Seconds + 1.0;
             string framesJson = JsonConvert.SerializeObject(frames);
 
             AppDBContext appDBContext = new AppDBContext();
@@ -799,30 +802,6 @@ namespace vProfanity
                 form.ShowDialog();
             }
         }
-
-        private List<Segment> CleanSegments(List<Segment> segments)
-        {
-            // Sort the segments by start time
-            List<Segment> sortedSegments = segments.OrderBy(s => s.Start).ToList();
-
-            // Merge overlapping and adjacent segments
-            List<Segment> cleanedSegments = new List<Segment> { sortedSegments[0] };
-            foreach (Segment segment in sortedSegments.Skip(1))
-            {
-                Segment lastSegment = cleanedSegments.Last();
-                if (segment.Start <= lastSegment.End)
-                {
-                    lastSegment.End = Math.Max(segment.End, lastSegment.End);
-                }
-                else
-                {
-                    cleanedSegments.Add(segment);
-                }
-            }
-
-            return cleanedSegments;
-        }
-
     }
 
 

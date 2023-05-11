@@ -24,7 +24,7 @@ namespace CsharpOpenCVProject
         {
             using (VideoCapture capture = new VideoCapture(VideoFile))
             {
-                double fps = Math.Round(capture.Get(CapProp.Fps));
+                double fps = Math.Floor(capture.Get(CapProp.Fps));
                 Mat frame = new Mat();
                 while (capture.Read(frame))
                 {
@@ -42,20 +42,20 @@ namespace CsharpOpenCVProject
         {
             using (VideoCapture capture = new VideoCapture(VideoFile))
             {
-                double fps = Math.Round(capture.Get(CapProp.Fps));
+                double fps = Math.Floor(capture.Get(CapProp.Fps));
                 Mat frame = new Mat();
                 while (capture.Read(frame))
                 {
-
+                    
                     double posFrame = capture.Get(CapProp.PosFrames);
-                    double frameSeconds = capture.Get(CapProp.PosMsec) / 1000;
+                    double milliseconds = capture.Get(CapProp.PosMsec);
 
                     if (posFrame % fps == 0)
                     {
                         yield return new TimedFrame
                         {
                             Frame = frame,
-                            Seconds = frameSeconds
+                            Milliseconds = milliseconds
                         };
                     }
 
@@ -80,7 +80,7 @@ namespace CsharpOpenCVProject
     public class TimedFrame
     {
         public Mat Frame { get; set; }
-        public double Seconds { get; set; }
+        public double Milliseconds { get; set; }
     }
 
 

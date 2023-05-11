@@ -25,6 +25,7 @@ def censor(video_file: str, segments: dict, output_path: str):
             black_clip = ColorClip(size=source_video.size, color=(0, 0, 0), duration=source_video.duration - start_time)
             edited_video_clips.append(black_clip)
             ended = True
+            break
 
     if not ended:
         edited_video_clips.append(source_video.subclip(last_video_end_time))
