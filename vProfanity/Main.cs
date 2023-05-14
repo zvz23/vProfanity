@@ -795,13 +795,7 @@ namespace vProfanity
             return resizedFrame.ToImage<Bgr, byte>().ToJpegData();
         }
 
-        private void Main_Load(object sender, EventArgs e)
-        {
-            using (LoadingForm form = new LoadingForm())
-            {
-                form.ShowDialog();
-            }
-        }
+        
     }
 
 

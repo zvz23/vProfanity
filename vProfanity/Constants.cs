@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Emgu.CV.Aruco;
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace vProfanity
@@ -12,11 +14,11 @@ namespace vProfanity
         public static readonly string FFMPEG_FOLDER = Path.Combine(Environment.CurrentDirectory, "ffmpeg");
         public static readonly string FFMPEG_EXE = Path.Combine(FFMPEG_FOLDER, "bin");
         public static readonly string PYTHON_UTILS_FOLDER = Path.Combine(Environment.CurrentDirectory, "utilspy");
-        public static readonly string CONFIG_PATH = Path.Combine(ABS_APP_DATA_FOLDER, "config.json");
+        public static readonly string PYTHON_PATH = Path.Combine(Environment.CurrentDirectory, "python");
+        public static readonly string PYTHON_DLL_PATH = Path.Combine(PYTHON_PATH, "python311.dll");
+        public static readonly string PYTHON_THIRD_PARTY_LIBRARIES_PATH = Path.Combine(PYTHON_PATH, "Lib", "site-packages");
         public static readonly string CENSORED_VIDEO_OUTPUT_FOLER = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "vProfanity");
-
-
-
+        public static readonly string MODEL_PATH = Path.Combine(Environment.CurrentDirectory, "models", "vProfanityModel.mlnet");
     }
 
     public static class DbConstants

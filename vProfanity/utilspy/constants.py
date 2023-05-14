@@ -1,6 +1,6 @@
 import os
 
-FFMPEG_PATH = os.environ.get('FFMPEG_EXECUTABLES_PATH')
+FFMPEG_PATH = os.path.join(os.getcwd(), 'ffmpeg', 'bin')
 FFMPEG_EXE = os.path.join(FFMPEG_PATH, 'ffmpeg.exe')
 
 FFMPEG_GET_WAV_CMD: str = FFMPEG_EXE + ' -hide_banner -y -i "[input_file]" -vn -ac 1 -ar 48000 "[output_file]"'
