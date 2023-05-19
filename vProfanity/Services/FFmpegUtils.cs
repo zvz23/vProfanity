@@ -12,7 +12,7 @@ namespace vProfanity.Services
 
         public FFmpegUtils(string outputPath)
         {
-            FFmpeg.SetExecutablesPath(Environment.GetEnvironmentVariable("FFMPEG_EXECUTABLES_PATH"));
+            FFmpeg.SetExecutablesPath(AppConstants.FFMPEG_EXE);
             OutputPath = outputPath;
         }
 
