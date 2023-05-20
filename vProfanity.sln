@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vProfanity", "vProfanity\vProfanity.csproj", "{66285F85-BCEB-42A7-A077-E3430B3496D6}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "vProfanitySetup", "vProfanitySetup\vProfanitySetup.vdproj", "{8B012D5B-647F-4D1C-B751-3609D85B7C7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{66285F85-BCEB-42A7-A077-E3430B3496D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66285F85-BCEB-42A7-A077-E3430B3496D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66285F85-BCEB-42A7-A077-E3430B3496D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B012D5B-647F-4D1C-B751-3609D85B7C7C}.Debug|Any CPU.ActiveCfg = Debug
+		{8B012D5B-647F-4D1C-B751-3609D85B7C7C}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
