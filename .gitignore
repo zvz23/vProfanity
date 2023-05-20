@@ -370,3 +370,5 @@ FodyWeavers.xsd
 
 # Don't include ffmpeg
 **/ffmpeg
+
+**/vProfanitySetup
