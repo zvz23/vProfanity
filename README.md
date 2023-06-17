@@ -22,7 +22,7 @@ In modern teaching, teachers frequently use digital multimedia files as teaching
 
 ## What Exactly is vProfanity
 
-vProfanity was developed by Ziegfred V. Zorrilla as the main programmer of the research team, followed by the junior programmer and the team leader of the research team, John Keneth P. Paluca. It was also assisted by Kent Usman L. Pacudan, the negotiator of the research team, and lastly, Jhenelmar M. Baje, the resource manager of the research team. The vision is to help teachers review and remove inappropriate content in digital videos, specifically profane words and sexual material.
+vProfanity was developed by [Ziegfred V. Zorrilla](https://github.com/zvz23) as the main programmer of the research team, followed by the junior programmer and the team leader of the research team, [John Keneth P. Paluca](https://github.com/KandaTeach). It was also assisted by Kent Usman L. Pacudan, the negotiator of the research team, and lastly, Jhenelmar M. Baje, the resource manager of the research team. The vision is to help teachers review and remove inappropriate content in digital videos, specifically profane words and sexual material.
 
 vProfanity uses two machine learning models, namely speech recognition and image classification. The speech recognition generates text from the audio detached from the source video. Each word from the generated text is checked for profane words, and if any are found, the corresponding segment containing the profane word is censored by muting it. On the other hand, the image classification model classifies each image/frame from the source video as either sexy, nude, or safe. If the image is classified as sexy or nude, it is censored by applying a black screen filter.
 
